@@ -1,0 +1,132 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-emerald-100 gap-4">
+    <div>
+      <h1 class="text-2xl font-black text-emerald-950">Mapa de Mesas & Salón</h1>
+      <p class="text-xs text-gray-500 mt-0.5">
+        Visualiza el estado de las mesas en tiempo real y asigna comandas de salón
+      </p>
+    </div>
+
+    <!-- Leyenda de Estados -->
+    <div class="flex items-center gap-3 bg-white px-3 py-1.5 rounded-xl border border-gray-200 text-xs shadow-xs">
+      <div class="flex items-center gap-1.5">
+        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+        <span class="text-gray-600 font-medium">Libre</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+        <span class="text-gray-600 font-medium">Ocupada</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="w-3 h-3 rounded-full bg-sky-500"></span>
+        <span class="text-gray-600 font-medium">Cuenta</span>
+      </div>
+    </div>
+  </div>
+
+  @if (loadingMesas()) {
+    <div class="p-12 text-center text-gray-400">Cargando mesas del salón...</div>
+  } @else {
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+      @for (m of mesas(); track m.id) {
+        <div
+          class="rounded-3xl border-2 p-4 transition-all duration-200 flex flex-col justify-between h-44 shadow-xs hover:shadow-md cursor-pointer bg-white"
+          [ngClass]="getMesaColor(m.estado)"
+          (click)="openComandaModal(m)"
+        >
+          <div class="flex items-start justify-between">
+            <span class="text-2xl font-black text-emerald-950 tracking-tight">
+              Mesa {{ m.numeroMesa }}
+            </span>
+            <app-badge
+              [text]="m.estado"
+              [variant]="m.estado === 'LIBRE' ? 'success' : (m.estado === 'OCUPADA' ? 'warning' : 'info')"
+            />
+          </div>
+
+          <div class="text-xs text-gray-500">
+            <p>Capacidad: <span class="font-bold text-gray-800">{{ m.capacidad }} personas</span></p>
+            <p class="text-[11px] text-gray-400 truncate">{{ m.ubicacion || 'Zona Principal' }}</p>
+          </div>
+
+          <!-- Acciones de Mesa -->
+          <div class="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
+            @if (m.estado === 'LIBRE') {
+              <span class="text-emerald-700 font-bold hover:underline">
+                + Tomar Comanda
+              </span>
+            } @else if (m.estado === 'OCUPADA') {
+              <button
+                type="button"
+                (click)="cambiarEstadoMesa(m, 'CUENTA', $event)"
+                class="text-sky-700 font-bold hover:underline"
+              >
+                Pedir Cuenta
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="cambiarEstadoMesa(m, 'LIBRE', $event)"
+                class="text-emerald-700 font-bold hover:underline"
+              >
+                Liberar
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Modal para Tomar Comanda en Mesa -->
+  <app-modal
+    [isOpen]="modalOpen()"
+    [title]="'Tomar Comanda - Mesa ' + selectedMesa()?.numeroMesa"
+    (closeModal)="closeModal()"
+  >
+    <div body class="space-y-4">
+      <p class="text-xs text-gray-500">
+        Selecciona los platos para los comensales de la Mesa {{ selectedMesa()?.numeroMesa }}.
+      </p>
+
+      <!-- Selector Rápido de Platos -->
+      <div class="border border-gray-100 rounded-xl p-3 bg-gray-50/50 max-h-56 overflow-y-auto divide-y divide-gray-100">
+        @for (p of platos(); track p.id) {
+          <div class="py-2 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-gray-800">{{ p.nombre }}</span>
+              <span class="text-emerald-700 font-medium ml-2">${{ p.precioUnitario.toFixed(2) }}</span>
+            </div>
+            <app-button
+              size="sm"
+              variant="secondary"
+              (btnClick)="addPlatoToComanda(p)"
+            >
+              + Agregar
+            </app-button>
+          </div>
+        }
+      </div>
+
+      <!-- Resumen actual de la comanda -->
+      <app-order-summary
+        title="Items en Comanda"
+        submitLabel="Enviar Comanda a Cocina"
+        [items]="comandaItems()"
+        [observaciones]="observaciones()"
+        [loading]="loadingOrder()"
+        (quantityChange)="onQuantityChange($event)"
+        (removeItem)="onRemoveItem($event)"
+        (notesChange)="onNotesChange($event)"
+        (observacionesChange)="observaciones.set($event)"
+        (submitOrder)="submitComanda()"
+      />
+    </div>
+
+    <div footer>
+      <app-button variant="outline" size="sm" (btnClick)="closeModal()">
+        Cerrar
+      </app-button>
+    </div>
+  </app-modal>
+</div>

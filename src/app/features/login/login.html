@@ -1,0 +1,143 @@
+<div class="min-h-[calc(100vh-140px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full bg-white rounded-3xl border border-emerald-100 shadow-md p-8 sm:p-10">
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-2xl flex items-center justify-center text-xl mx-auto mb-3 shadow-xs">
+        🔐
+      </div>
+      <h2 class="text-2xl font-black text-emerald-950 tracking-tight">Iniciar Sesión</h2>
+      <p class="text-xs text-gray-500 mt-1">
+        Ingresa con tu cuenta de cliente o credenciales de personal
+      </p>
+    </div>
+
+    <!-- Pestañas de Login -->
+    <div class="grid grid-cols-2 gap-1 bg-emerald-50/70 p-1 rounded-xl mb-6 border border-emerald-200/50">
+      <button
+        type="button"
+        (click)="setTab('cliente')"
+        class="py-2 text-xs font-bold rounded-lg transition-all"
+        [ngClass]="activeTab() === 'cliente' ? 'bg-white text-emerald-900 shadow-xs' : 'text-emerald-700 hover:text-emerald-900'"
+      >
+        Soy Cliente
+      </button>
+      <button
+        type="button"
+        (click)="setTab('staff')"
+        class="py-2 text-xs font-bold rounded-lg transition-all"
+        [ngClass]="activeTab() === 'staff' ? 'bg-white text-emerald-900 shadow-xs' : 'text-emerald-700 hover:text-emerald-900'"
+      >
+        Personal / Staff
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
+        <span>⚠️</span>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Formulario Cliente -->
+    @if (activeTab() === 'cliente') {
+      <form (submit)="onClienteLogin(); $event.preventDefault()" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">
+            Correo Electrónico o Cédula / RUC
+          </label>
+          <input
+            type="text"
+            [ngModel]="clienteLogin()"
+            (ngModelChange)="clienteLogin.set($event)"
+            name="clienteLogin"
+            required
+            placeholder="ej: juan.perez@gmail.com o 1718293041"
+            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden bg-gray-50/50"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">
+            Contraseña
+          </label>
+          <input
+            type="password"
+            [ngModel]="clientePassword()"
+            (ngModelChange)="clientePassword.set($event)"
+            name="clientePassword"
+            required
+            placeholder="••••••••"
+            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden bg-gray-50/50"
+          />
+        </div>
+
+        <div class="pt-2">
+          <app-button
+            type="submit"
+            variant="primary"
+            size="lg"
+            [disabled]="loading()"
+            class="w-full [&>button]:w-full"
+          >
+            {{ loading() ? 'Ingresando...' : 'Iniciar Sesión como Cliente' }}
+          </app-button>
+        </div>
+
+        <div class="text-center pt-3 border-t border-gray-100">
+          <p class="text-xs text-gray-500">
+            ¿No tienes cuenta?
+            <a routerLink="/register" class="text-emerald-700 font-bold hover:underline">
+              Regístrate aquí
+            </a>
+          </p>
+        </div>
+      </form>
+    }
+
+    <!-- Formulario Staff -->
+    @if (activeTab() === 'staff') {
+      <form (submit)="onStaffLogin(); $event.preventDefault()" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">
+            Correo Corporativo
+          </label>
+          <input
+            type="email"
+            [ngModel]="staffEmail()"
+            (ngModelChange)="staffEmail.set($event)"
+            name="staffEmail"
+            required
+            placeholder="admin@restaurant.com"
+            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden bg-gray-50/50"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">
+            Contraseña de Acceso
+          </label>
+          <input
+            type="password"
+            [ngModel]="staffPassword()"
+            (ngModelChange)="staffPassword.set($event)"
+            name="staffPassword"
+            required
+            placeholder="••••••••"
+            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden bg-gray-50/50"
+          />
+        </div>
+
+        <div class="pt-2">
+          <app-button
+            type="submit"
+            variant="primary"
+            size="lg"
+            [disabled]="loading()"
+            class="w-full [&>button]:w-full"
+          >
+            {{ loading() ? 'Verificando...' : 'Acceder al Sistema POS' }}
+          </app-button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

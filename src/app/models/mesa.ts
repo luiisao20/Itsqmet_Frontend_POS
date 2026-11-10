@@ -1,0 +1,10 @@
+export type EstadoMesa = 'LIBRE' | 'OCUPADA' | 'CUENTA';
+
+export interface Mesa {
+  id: number;
+  numeroMesa: number;
+  capacidad: number;
+  ubicacion?: string;
+  estado: EstadoMesa;
+  createdAt?: string;
+}

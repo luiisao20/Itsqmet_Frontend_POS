@@ -1,0 +1,29 @@
+@if (isOpen()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs modal-backdrop animate-fade-in"
+    (click)="onBackdropClick($event)"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-xl border border-emerald-100 max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden"
+    >
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-emerald-50/50">
+        <h3 class="text-lg font-semibold text-emerald-950">{{ title() }}</h3>
+        <button
+          type="button"
+          (click)="closeModal.emit()"
+          class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-white"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto">
+        <ng-content select="[body]" />
+      </div>
+
+      <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+        <ng-content select="[footer]" />
+      </div>
+    </div>
+  </div>
+}

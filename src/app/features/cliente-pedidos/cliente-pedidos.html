@@ -1,0 +1,224 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Encabezado de la Sección Cliente -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-emerald-100 gap-4">
+    <div>
+      <h1 class="text-2xl font-black text-emerald-950">Panel de Pedidos & Facturas</h1>
+      <p class="text-xs text-gray-500 mt-0.5">
+        Arma tu pedido para llevar en tiempo real y consulta tu historial fiscal
+      </p>
+    </div>
+
+    <!-- Navegación por pestañas -->
+    <div class="flex gap-1.5 bg-white p-1 rounded-2xl border border-emerald-100 shadow-xs">
+      <button
+        type="button"
+        (click)="activeTab.set('nuevo')"
+        class="px-4 py-2 text-xs font-bold rounded-xl transition-all"
+        [ngClass]="activeTab() === 'nuevo' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50'"
+      >
+        🛍️ Nuevo Pedido (Llevar)
+      </button>
+
+      <button
+        type="button"
+        (click)="activeTab.set('historial'); loadMisPedidos()"
+        class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+        [ngClass]="activeTab() === 'historial' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50'"
+      >
+        <span>📋 Mis Pedidos</span>
+        @if (misPedidos().length > 0) {
+          <span class="w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-black" [ngClass]="activeTab() === 'historial' ? 'bg-white text-emerald-700' : 'bg-emerald-100 text-emerald-800'">
+            {{ misPedidos().length }}
+          </span>
+        }
+      </button>
+
+      <button
+        type="button"
+        (click)="activeTab.set('facturas'); loadMisFacturas()"
+        class="px-4 py-2 text-xs font-bold rounded-xl transition-all"
+        [ngClass]="activeTab() === 'facturas' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50'"
+      >
+        🧾 Mis Facturas
+      </button>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="mb-6 p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-emerald-900 text-xs font-semibold flex items-center gap-2 shadow-xs animate-fade-in">
+      <span class="text-lg">🎉</span>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- TAB 1: CREAR PEDIDO PARA LLEVAR -->
+  @if (activeTab() === 'nuevo') {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Columna 1 y 2: Catálogo del Menú -->
+      <div class="lg:col-span-2 flex flex-col gap-6">
+        <!-- Filtro de Categorías -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+          <button
+            type="button"
+            (click)="filterCategoria(null)"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors"
+            [ngClass]="selectedCategoriaId() === null ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-emerald-50'"
+          >
+            Todos
+          </button>
+          @for (cat of categorias(); track cat.id) {
+            <button
+              type="button"
+              (click)="filterCategoria(cat.id)"
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors"
+              [ngClass]="selectedCategoriaId() === cat.id ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-emerald-50'"
+            >
+              {{ cat.nombre }}
+            </button>
+          }
+        </div>
+
+        <!-- Grid de Platos -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (plato of platos(); track plato.id) {
+            <app-plato-card
+              [plato]="plato"
+              (addToCart)="onAddToCart($event)"
+            />
+          }
+        </div>
+      </div>
+
+      <!-- Columna 3: Carrito / Resumen del Pedido Para Llevar -->
+      <div class="lg:col-span-1">
+        <div class="sticky top-20">
+          <app-order-summary
+            title="Mi Pedido Para Llevar"
+            submitLabel="🚀 Enviar Pedido a Cocina"
+            [items]="cartItems()"
+            [observaciones]="observaciones()"
+            [loading]="loadingOrder()"
+            (quantityChange)="onQuantityChange($event)"
+            (removeItem)="onRemoveItem($event)"
+            (notesChange)="onNotesChange($event)"
+            (observacionesChange)="observaciones.set($event)"
+            (submitOrder)="onSubmitTakeoutOrder()"
+          />
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: HISTORIAL DE PEDIDOS DEL CLIENTE -->
+  @if (activeTab() === 'historial') {
+    <div class="space-y-4">
+      @if (loadingList()) {
+        <div class="p-12 text-center text-gray-400">Cargando tus pedidos...</div>
+      } @else if (misPedidos().length === 0) {
+        <div class="bg-white rounded-3xl border border-emerald-100 p-12 text-center max-w-md mx-auto shadow-xs">
+          <div class="text-4xl mb-3">📦</div>
+          <h3 class="text-base font-bold text-gray-800">No tienes pedidos registrados</h3>
+          <p class="text-xs text-gray-500 mt-1">Arma tu primer pedido para llevar en la pestaña anterior.</p>
+          <div class="mt-4">
+            <app-button size="sm" (btnClick)="activeTab.set('nuevo')">Crear Pedido</app-button>
+          </div>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          @for (p of misPedidos(); track p.id) {
+            <div class="bg-white rounded-2xl border border-emerald-100 p-5 shadow-xs hover:border-emerald-300 transition-colors">
+              <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-black text-emerald-950">Pedido #{{ p.id }}</span>
+                  <span class="text-[11px] bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded-md border border-emerald-200">
+                    {{ p.tipo }}
+                  </span>
+                </div>
+                <app-badge [text]="p.estado" [variant]="getEstadoVariant(p.estado)" />
+              </div>
+
+              <div class="py-3 divide-y divide-gray-50 text-xs text-gray-600">
+                @for (d of p.detalles; track d.idPlato) {
+                  <div class="py-1.5 flex justify-between items-center">
+                    <div>
+                      <span class="font-bold text-gray-800 mr-2">{{ d.cantidad }}x</span>
+                      <span>{{ d.nombrePlato }}</span>
+                      @if (d.notasPreparacion) {
+                        <span class="block text-[11px] text-emerald-700 italic">"{{ d.notasPreparacion }}"</span>
+                      }
+                    </div>
+                    <span class="font-semibold text-gray-800">${{ d.subtotal.toFixed(2) }}</span>
+                  </div>
+                }
+              </div>
+
+              @if (p.observaciones) {
+                <div class="mt-2 p-2 bg-emerald-50/50 rounded-lg text-[11px] text-emerald-900 border border-emerald-100">
+                  <span class="font-bold">Observación:</span> {{ p.observaciones }}
+                </div>
+              }
+
+              <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+                <span>Registrado: {{ p.fechaApertura | date:'short' }}</span>
+                <span class="text-emerald-700 font-bold">
+                  {{ p.detalles.length }} items
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- TAB 3: MIS FACTURAS -->
+  @if (activeTab() === 'facturas') {
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-emerald-100 bg-emerald-50/40">
+        <h3 class="font-bold text-emerald-950 text-sm">Historial de Facturas Electrónicas</h3>
+        <p class="text-xs text-gray-400">Comprobantes autorizados emitidos a tu nombre o cédula</p>
+      </div>
+
+      @if (misFacturas().length === 0) {
+        <div class="p-12 text-center text-gray-400 text-xs">
+          Aún no tienes facturas emitidas. Las facturas se generan automáticamente al completar y pagar tus pedidos.
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-50 border-b border-gray-100 text-gray-500 uppercase text-[10px] font-bold">
+              <tr>
+                <th class="px-6 py-3">Secuencial</th>
+                <th class="px-6 py-3">Fecha</th>
+                <th class="px-6 py-3">Subtotal</th>
+                <th class="px-6 py-3">IVA (15%)</th>
+                <th class="px-6 py-3">Total</th>
+                <th class="px-6 py-3">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-gray-700">
+              @for (f of misFacturas(); track f.id) {
+                <tr class="hover:bg-emerald-50/30 transition-colors">
+                  <td class="px-6 py-3.5 font-bold text-emerald-900 font-mono">
+                    {{ f.numeroSecuencial }}
+                  </td>
+                  <td class="px-6 py-3.5 text-gray-500">
+                    {{ f.fechaEmision | date:'mediumDate' }}
+                  </td>
+                  <td class="px-6 py-3.5 font-medium">${{ f.subtotal.toFixed(2) }}</td>
+                  <td class="px-6 py-3.5 font-medium">${{ f.subtotalIva.toFixed(2) }}</td>
+                  <td class="px-6 py-3.5 font-black text-emerald-800 text-sm">
+                    ${{ f.total.toFixed(2) }}
+                  </td>
+                  <td class="px-6 py-3.5">
+                    <app-badge [text]="f.estado" [variant]="f.estado === 'EMITIDA' ? 'success' : 'danger'" />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

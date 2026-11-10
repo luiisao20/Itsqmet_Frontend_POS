@@ -1,0 +1,103 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Hero Banner Minimalista Verde Claro -->
+  <div class="rounded-3xl bg-linear-to-r from-emerald-700 via-emerald-600 to-teal-700 text-white p-8 md:p-12 mb-8 shadow-sm relative overflow-hidden">
+    <div class="relative z-10 max-w-2xl">
+      <span class="inline-block bg-white/20 backdrop-blur-xs text-xs font-semibold px-3 py-1 rounded-full text-emerald-50 mb-3 border border-white/20">
+        ✨ Experiencia Gastronómica & Pedidos Online
+      </span>
+      <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+        Sabores Auténticos, <br />
+        <span class="text-emerald-200">Preparados al Momento.</span>
+      </h1>
+      <p class="text-sm md:text-base text-emerald-100 mt-3 max-w-xl font-normal leading-relaxed">
+        Explora nuestro menú artesanal. Pide directamente para llevar o disfruta en nuestro salón atendido por nuestro equipo.
+      </p>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        <app-button
+          variant="secondary"
+          size="md"
+          (btnClick)="goToOrder()"
+        >
+          🛍️ Realizar Pedido para Llevar
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Decorativo SVG de fondo -->
+    <div class="absolute -right-12 -bottom-12 w-96 h-96 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="bg-white rounded-2xl border border-emerald-100 p-4 mb-8 shadow-xs flex flex-col md:flex-row gap-4 justify-between items-center">
+    <!-- Categorías Tabs -->
+    <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+      <button
+        type="button"
+        (click)="filterByCategoria(null)"
+        class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors"
+        [ngClass]="selectedCategoriaId() === null ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+      >
+        Todos los Platos
+      </button>
+
+      @for (cat of categorias(); track cat.id) {
+        <button
+          type="button"
+          (click)="filterByCategoria(cat.id)"
+          class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors"
+          [ngClass]="selectedCategoriaId() === cat.id ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+        >
+          {{ cat.nombre }}
+        </button>
+      }
+    </div>
+
+    <!-- Input de Búsqueda -->
+    <div class="w-full md:w-72 relative">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        placeholder="Buscar plato o ingrediente..."
+        class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden bg-gray-50/50"
+      />
+      <span class="absolute left-3 top-2.5 text-xs text-gray-400">🔍</span>
+    </div>
+  </div>
+
+  <!-- Grid de Platos -->
+  @if (loading()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+        <div class="bg-white rounded-2xl border border-gray-100 p-4 animate-pulse h-72">
+          <div class="bg-gray-200 h-40 rounded-xl mb-4"></div>
+          <div class="h-4 bg-gray-200 rounded-sm w-3/4 mb-2"></div>
+          <div class="h-3 bg-gray-200 rounded-sm w-1/2"></div>
+        </div>
+      }
+    </div>
+  } @else if (platos().length === 0) {
+    <div class="bg-white rounded-2xl border border-emerald-100 p-12 text-center max-w-md mx-auto shadow-xs">
+      <div class="text-4xl mb-3">🍽️</div>
+      <h3 class="text-base font-bold text-gray-800">No se encontraron platos</h3>
+      <p class="text-xs text-gray-500 mt-1">
+        Prueba buscando con otro término o selecciona otra categoría.
+      </p>
+      <div class="mt-4">
+        <app-button size="sm" variant="secondary" (btnClick)="filterByCategoria(null)">
+          Ver todos los platos
+        </app-button>
+      </div>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      @for (plato of platos(); track plato.id) {
+        <app-plato-card
+          [plato]="plato"
+          (addToCart)="onAddToCart($event)"
+        />
+      }
+    </div>
+  }
+</div>

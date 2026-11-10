@@ -1,0 +1,225 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="pb-6 mb-8 border-b border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-black text-emerald-950">Panel de Administración</h1>
+      <p class="text-xs text-gray-500 mt-0.5">
+        Métricas generales del restaurante, gestión de catálogo y control operativo
+      </p>
+    </div>
+
+    <app-button variant="primary" size="md" (btnClick)="openCrearModal()">
+      + Nuevo Plato
+    </app-button>
+  </div>
+
+  <!-- Métricas Rápidas en Tarjetas Verde Suave -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
+        🍽️
+      </div>
+      <div>
+        <span class="text-xs text-gray-400 font-medium block">Platos Registrados</span>
+        <span class="text-2xl font-black text-emerald-950">{{ platos().length }}</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
+        🪑
+      </div>
+      <div>
+        <span class="text-xs text-gray-400 font-medium block">Total de Mesas</span>
+        <span class="text-2xl font-black text-emerald-950">{{ totalMesas() }}</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
+        🧾
+      </div>
+      <div>
+        <span class="text-xs text-gray-400 font-medium block">Facturas Totales</span>
+        <span class="text-2xl font-black text-emerald-950">{{ totalFacturas() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Gestión de Platos -->
+  <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-bold text-gray-800 text-sm">Catálogo de Platos del Menú</h3>
+      <span class="text-xs text-gray-400">{{ platos().length }} platos activos</span>
+    </div>
+
+    @if (loading()) {
+      <div class="p-12 text-center text-gray-400 text-xs">Cargando catálogo...</div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">Plato</th>
+              <th class="px-6 py-3">Categoría</th>
+              <th class="px-6 py-3">Precio</th>
+              <th class="px-6 py-3">IVA</th>
+              <th class="px-6 py-3">Estado</th>
+              <th class="px-6 py-3 text-right">Acción</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (p of platos(); track p.id) {
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3.5">
+                  <div class="flex items-center gap-3">
+                    @if (p.urlImagen) {
+                      <img [src]="p.urlImagen" class="w-9 h-9 rounded-lg object-cover" />
+                    }
+                    <div>
+                      <span class="font-bold text-gray-900 block">{{ p.nombre }}</span>
+                      <span class="text-[11px] text-gray-400 line-clamp-1">{{ p.descripcion }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-3.5">
+                  <span class="font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
+                    {{ p.nombreCategoria || 'General' }}
+                  </span>
+                </td>
+                <td class="px-6 py-3.5 font-bold text-emerald-800 text-sm">
+                  ${{ p.precioUnitario.toFixed(2) }}
+                </td>
+                <td class="px-6 py-3.5">
+                  <span class="text-[11px] font-semibold" [ngClass]="p.aplicaIva ? 'text-emerald-700' : 'text-gray-400'">
+                    {{ p.aplicaIva ? '15%' : '0%' }}
+                  </span>
+                </td>
+                <td class="px-6 py-3.5">
+                  <app-badge
+                    [text]="p.disponible ? 'Disponible' : 'Agotado'"
+                    [variant]="p.disponible ? 'success' : 'danger'"
+                  />
+                </td>
+                <td class="px-6 py-3.5 text-right">
+                  <button
+                    type="button"
+                    (click)="toggleDisponibilidad(p)"
+                    class="text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors"
+                    [ngClass]="p.disponible ? 'border-rose-200 text-rose-600 hover:bg-rose-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'"
+                  >
+                    {{ p.disponible ? 'Agotar' : 'Habilitar' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Modal Crear Plato -->
+  <app-modal
+    [isOpen]="modalOpen()"
+    title="Agregar Nuevo Plato al Menú"
+    (closeModal)="modalOpen.set(false)"
+  >
+    <div body class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 mb-1">
+          Nombre del Plato *
+        </label>
+        <input
+          type="text"
+          [ngModel]="nombrePlato()"
+          (ngModelChange)="nombrePlato.set($event)"
+          placeholder="ej: Arroz Marinero Especial"
+          class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">
+            Categoría *
+          </label>
+          <select
+            [ngModel]="idCategoriaPlato()"
+            (ngModelChange)="idCategoriaPlato.set($event)"
+            class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50/50"
+          >
+            @for (c of categorias(); track c.id) {
+              <option [value]="c.id">{{ c.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">
+            Precio Unitario ($) *
+          </label>
+          <input
+            type="number"
+            step="0.25"
+            [ngModel]="precioPlato()"
+            (ngModelChange)="precioPlato.set($event)"
+            class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 font-bold"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 mb-1">
+          Descripción de la Preparación
+        </label>
+        <textarea
+          rows="2"
+          [ngModel]="descripcionPlato()"
+          (ngModelChange)="descripcionPlato.set($event)"
+          placeholder="Ingredientes principales y presentación..."
+          class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200"
+        ></textarea>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 mb-1">
+          URL de la Imagen
+        </label>
+        <input
+          type="url"
+          [ngModel]="urlImagenPlato()"
+          (ngModelChange)="urlImagenPlato.set($event)"
+          placeholder="https://images.unsplash.com/..."
+          class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200"
+        />
+      </div>
+
+      <div class="flex items-center gap-2 pt-2">
+        <input
+          type="checkbox"
+          id="aplicaIvaCheck"
+          [ngModel]="aplicaIvaPlato()"
+          (ngModelChange)="aplicaIvaPlato.set($event)"
+          class="rounded-sm border-gray-300 text-emerald-600 focus:ring-emerald-500"
+        />
+        <label for="aplicaIvaCheck" class="text-xs font-semibold text-gray-700">
+          Aplica IVA 15%
+        </label>
+      </div>
+    </div>
+
+    <div footer>
+      <app-button variant="outline" size="sm" (btnClick)="modalOpen.set(false)">
+        Cancelar
+      </app-button>
+      <app-button
+        variant="primary"
+        size="sm"
+        [disabled]="loadingSubmit()"
+        (btnClick)="onSubmitPlato()"
+      >
+        {{ loadingSubmit() ? 'Guardando...' : 'Crear Plato' }}
+      </app-button>
+    </div>
+  </app-modal>
+</div>
