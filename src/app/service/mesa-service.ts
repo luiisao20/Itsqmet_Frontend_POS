@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { APP_CONFIG } from '../configs/config';
-import { EstadoMesa, Mesa } from '../models/mesa';
+import { EstadoMesa, Mesa, MesaRequest } from '../models/mesa';
 import { PageResponse } from '../models/plato';
 
 @Injectable({
@@ -18,6 +18,18 @@ export class MesaService {
 
   getMesaById(id: number): Observable<Mesa> {
     return this.http.get<Mesa>(`${this.MESAS_URL}/${id}`);
+  }
+
+  createMesa(req: MesaRequest): Observable<Mesa> {
+    return this.http.post<Mesa>(this.MESAS_URL, req);
+  }
+
+  updateMesa(id: number, req: Partial<MesaRequest>): Observable<Mesa> {
+    return this.http.put<Mesa>(`${this.MESAS_URL}/${id}`, req);
+  }
+
+  deleteMesa(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.MESAS_URL}/${id}`);
   }
 
   updateEstado(id: number, estado: EstadoMesa): Observable<Mesa> {

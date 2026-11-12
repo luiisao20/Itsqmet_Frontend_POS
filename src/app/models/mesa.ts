@@ -8,3 +8,10 @@ export interface Mesa {
   estado: EstadoMesa;
   createdAt?: string;
 }
+
+export interface MesaRequest {
+  numeroMesa: number;
+  capacidad: number;
+  ubicacion?: string;
+  estado?: EstadoMesa;
+}

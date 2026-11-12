@@ -8,6 +8,12 @@ export interface CategoriaPlato {
   createdAt?: string;
 }
 
+export interface CategoriaPlatoRequest {
+  nombre: string;
+  areaImpresion: AreaImpresion;
+  ordenVisual?: number;
+}
+
 export interface Plato {
   id: number;
   idCategoria: number;
@@ -19,6 +25,16 @@ export interface Plato {
   disponible: boolean;
   urlImagen?: string;
   createdAt?: string;
+}
+
+export interface PlatoRequest {
+  idCategoria: number;
+  nombre: string;
+  descripcion?: string;
+  precioUnitario: number;
+  aplicaIva: boolean;
+  disponible?: boolean;
+  urlImagen?: string;
 }
 
 export interface PageResponse<T> {

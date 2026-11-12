@@ -3,6 +3,7 @@ export const APP_CONFIG = {
   WS_URL: 'ws://localhost:8080/ws-pos',
   ENDPOINTS: {
     AUTH: '/auth',
+    USUARIOS: '/usuarios',
     PLATOS: '/platos',
     CATEGORIAS: '/categorias-plato',
     MESAS: '/mesas',

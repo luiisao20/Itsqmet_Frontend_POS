@@ -1,60 +1,137 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Encabezado Principal -->
   <div class="pb-6 mb-8 border-b border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-black text-emerald-950">Panel de Administración</h1>
       <p class="text-xs text-gray-500 mt-0.5">
-        Métricas generales del restaurante, gestión de catálogo y control operativo
+        Gestión integral de catálogo, personal, inventario, mesas y proveedores
       </p>
     </div>
 
-    <app-button variant="primary" size="md" (btnClick)="openCrearModal()">
-      + Nuevo Plato
-    </app-button>
+    <!-- Acciones según pestaña activa -->
+    <div>
+      @if (activeTab() === 'platos') {
+        <app-button variant="primary" size="md" (btnClick)="openCrearPlato()">+ Nuevo Plato</app-button>
+      } @else if (activeTab() === 'categorias') {
+        <app-button variant="primary" size="md" (btnClick)="openCrearCategoria()">+ Nueva Categoría</app-button>
+      } @else if (activeTab() === 'mesas') {
+        <app-button variant="primary" size="md" (btnClick)="openCrearMesa()">+ Nueva Mesa</app-button>
+      } @else if (activeTab() === 'usuarios') {
+        <app-button variant="primary" size="md" (btnClick)="openCrearUsuario()">+ Nuevo Empleado</app-button>
+      } @else if (activeTab() === 'insumos') {
+        <app-button variant="primary" size="md" (btnClick)="openCrearInsumo()">+ Nuevo Insumo</app-button>
+      } @else if (activeTab() === 'distribuidores') {
+        <app-button variant="primary" size="md" (btnClick)="openCrearDistribuidor()">+ Nuevo Distribuidor</app-button>
+      } @else if (activeTab() === 'clientes') {
+        <app-button variant="primary" size="md" (btnClick)="openCrearCliente()">+ Nuevo Cliente</app-button>
+      }
+    </div>
   </div>
 
-  <!-- Métricas Rápidas en Tarjetas Verde Suave -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
-      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
+  <!-- Métricas Rápidas -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-3xl border border-emerald-100 p-4 shadow-xs flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl font-bold">
         🍽️
       </div>
       <div>
-        <span class="text-xs text-gray-400 font-medium block">Platos Registrados</span>
-        <span class="text-2xl font-black text-emerald-950">{{ platos().length }}</span>
+        <span class="text-[11px] text-gray-400 font-medium block">Platos</span>
+        <span class="text-xl font-black text-emerald-950">{{ platos().length }}</span>
       </div>
     </div>
 
-    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
-      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
+    <div class="bg-white rounded-3xl border border-emerald-100 p-4 shadow-xs flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl font-bold">
         🪑
       </div>
       <div>
-        <span class="text-xs text-gray-400 font-medium block">Total de Mesas</span>
-        <span class="text-2xl font-black text-emerald-950">{{ totalMesas() }}</span>
+        <span class="text-[11px] text-gray-400 font-medium block">Mesas</span>
+        <span class="text-xl font-black text-emerald-950">{{ mesas().length }}</span>
       </div>
     </div>
 
-    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
-      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
-        🧾
+    <div class="bg-white rounded-3xl border border-emerald-100 p-4 shadow-xs flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl font-bold">
+        👥
       </div>
       <div>
-        <span class="text-xs text-gray-400 font-medium block">Facturas Totales</span>
-        <span class="text-2xl font-black text-emerald-950">{{ totalFacturas() }}</span>
+        <span class="text-[11px] text-gray-400 font-medium block">Personal</span>
+        <span class="text-xl font-black text-emerald-950">{{ usuarios().length }}</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-emerald-100 p-4 shadow-xs flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl font-bold">
+        📦
+      </div>
+      <div>
+        <span class="text-[11px] text-gray-400 font-medium block">Insumos</span>
+        <span class="text-xl font-black text-emerald-950">{{ insumos().length }}</span>
       </div>
     </div>
   </div>
 
-  <!-- Tabla de Gestión de Platos -->
-  <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-      <h3 class="font-bold text-gray-800 text-sm">Catálogo de Platos del Menú</h3>
-      <span class="text-xs text-gray-400">{{ platos().length }} platos activos</span>
-    </div>
+  <!-- Barra de Pestañas de Navegación CRUD -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-6 border-b border-gray-100 scrollbar-none">
+    <button
+      (click)="setTab('platos')"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeTab() === 'platos' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+    >
+      🍽️ Platos ({{ platos().length }})
+    </button>
+    <button
+      (click)="setTab('categorias')"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeTab() === 'categorias' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+    >
+      📂 Categorías ({{ categorias().length }})
+    </button>
+    <button
+      (click)="setTab('mesas')"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeTab() === 'mesas' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+    >
+      🪑 Mesas ({{ mesas().length }})
+    </button>
+    <button
+      (click)="setTab('usuarios')"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeTab() === 'usuarios' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+    >
+      👥 Personal ({{ usuarios().length }})
+    </button>
+    <button
+      (click)="setTab('insumos')"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeTab() === 'insumos' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+    >
+      📦 Insumos / Inventario ({{ insumos().length }})
+    </button>
+    <button
+      (click)="setTab('distribuidores')"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeTab() === 'distribuidores' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+    >
+      🚚 Distribuidores ({{ distribuidores().length }})
+    </button>
+    <button
+      (click)="setTab('clientes')"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeTab() === 'clientes' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+    >
+      👤 Clientes ({{ clientes().length }})
+    </button>
+  </div>
 
-    @if (loading()) {
-      <div class="p-12 text-center text-gray-400 text-xs">Cargando catálogo...</div>
-    } @else {
+  <!-- TAB 1: PLATOS -->
+  @if (activeTab() === 'platos') {
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-sm">Catálogo de Platos del Menú</h3>
+        <span class="text-xs text-gray-400">{{ platos().length }} registrados</span>
+      </div>
+
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
@@ -64,7 +141,7 @@
               <th class="px-6 py-3">Precio</th>
               <th class="px-6 py-3">IVA</th>
               <th class="px-6 py-3">Estado</th>
-              <th class="px-6 py-3 text-right">Acción</th>
+              <th class="px-6 py-3 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 text-gray-700">
@@ -77,7 +154,7 @@
                     }
                     <div>
                       <span class="font-bold text-gray-900 block">{{ p.nombre }}</span>
-                      <span class="text-[11px] text-gray-400 line-clamp-1">{{ p.descripcion }}</span>
+                      <span class="text-[11px] text-gray-400 line-clamp-1">{{ p.descripcion || 'Sin descripción' }}</span>
                     </div>
                   </div>
                 </td>
@@ -95,131 +172,989 @@
                   </span>
                 </td>
                 <td class="px-6 py-3.5">
-                  <app-badge
-                    [text]="p.disponible ? 'Disponible' : 'Agotado'"
-                    [variant]="p.disponible ? 'success' : 'danger'"
-                  />
-                </td>
-                <td class="px-6 py-3.5 text-right">
                   <button
-                    type="button"
                     (click)="toggleDisponibilidad(p)"
-                    class="text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors"
-                    [ngClass]="p.disponible ? 'border-rose-200 text-rose-600 hover:bg-rose-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'"
+                    class="cursor-pointer"
+                    title="Clic para cambiar disponibilidad"
                   >
-                    {{ p.disponible ? 'Agotar' : 'Habilitar' }}
+                    <app-badge
+                      [text]="p.disponible ? 'Disponible' : 'Agotado'"
+                      [variant]="p.disponible ? 'success' : 'danger'"
+                    ></app-badge>
                   </button>
                 </td>
+                <td class="px-6 py-3.5 text-right space-x-1">
+                  <button
+                    (click)="openEditarPlato(p)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="deletePlato(p)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="p-8 text-center text-gray-400">No hay platos registrados</td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    }
-  </div>
+    </div>
+  }
 
-  <!-- Modal Crear Plato -->
-  <app-modal
-    [isOpen]="modalOpen()"
-    title="Agregar Nuevo Plato al Menú"
-    (closeModal)="modalOpen.set(false)"
-  >
-    <div body class="space-y-4">
-      <div>
-        <label class="block text-xs font-semibold text-gray-700 mb-1">
-          Nombre del Plato *
-        </label>
-        <input
-          type="text"
-          [ngModel]="nombrePlato()"
-          (ngModelChange)="nombrePlato.set($event)"
-          placeholder="ej: Arroz Marinero Especial"
-          class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200"
-        />
+  <!-- TAB 2: CATEGORÍAS -->
+  @if (activeTab() === 'categorias') {
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-sm">Categorías del Menú</h3>
+        <span class="text-xs text-gray-400">{{ categorias().length }} registradas</span>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-gray-700 mb-1">
-            Categoría *
-          </label>
-          <select
-            [ngModel]="idCategoriaPlato()"
-            (ngModelChange)="idCategoriaPlato.set($event)"
-            class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50/50"
-          >
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">ID</th>
+              <th class="px-6 py-3">Nombre</th>
+              <th class="px-6 py-3">Área de Impresión</th>
+              <th class="px-6 py-3">Orden Visual</th>
+              <th class="px-6 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
             @for (c of categorias(); track c.id) {
-              <option [value]="c.id">{{ c.nombre }}</option>
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3.5 font-mono text-gray-400">#{{ c.id }}</td>
+                <td class="px-6 py-3.5 font-bold text-gray-900">{{ c.nombre }}</td>
+                <td class="px-6 py-3.5">
+                  <span class="px-2 py-0.5 rounded-md font-semibold text-[11px]"
+                    [ngClass]="c.areaImpresion === 'COCINA' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'">
+                    {{ c.areaImpresion }}
+                  </span>
+                </td>
+                <td class="px-6 py-3.5 text-gray-600">{{ c.ordenVisual || '-' }}</td>
+                <td class="px-6 py-3.5 text-right space-x-1">
+                  <button
+                    (click)="openEditarCategoria(c)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="deleteCategoria(c)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="p-8 text-center text-gray-400">No hay categorías registradas</td>
+              </tr>
             }
-          </select>
-        </div>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-700 mb-1">
-            Precio Unitario ($) *
-          </label>
-          <input
-            type="number"
-            step="0.25"
-            [ngModel]="precioPlato()"
-            (ngModelChange)="precioPlato.set($event)"
-            class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 font-bold"
-          />
-        </div>
+  <!-- TAB 3: MESAS -->
+  @if (activeTab() === 'mesas') {
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-sm">Distribución de Mesas del Salón</h3>
+        <span class="text-xs text-gray-400">{{ mesas().length }} mesas configuradas</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">Mesa #</th>
+              <th class="px-6 py-3">Ubicación</th>
+              <th class="px-6 py-3">Capacidad</th>
+              <th class="px-6 py-3">Estado</th>
+              <th class="px-6 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (m of mesas(); track m.id) {
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3.5 font-black text-gray-900 text-sm">Mesa {{ m.numeroMesa }}</td>
+                <td class="px-6 py-3.5 text-gray-600">{{ m.ubicacion || 'General' }}</td>
+                <td class="px-6 py-3.5 font-semibold text-gray-800">{{ m.capacidad }} personas</td>
+                <td class="px-6 py-3.5">
+                  <app-badge
+                    [text]="m.estado"
+                    [variant]="m.estado === 'LIBRE' ? 'success' : m.estado === 'OCUPADA' ? 'warning' : 'info'"
+                  ></app-badge>
+                </td>
+                <td class="px-6 py-3.5 text-right space-x-1">
+                  <button
+                    (click)="openEditarMesa(m)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="deleteMesa(m)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="p-8 text-center text-gray-400">No hay mesas registradas</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 4: PERSONAL / USUARIOS -->
+  @if (activeTab() === 'usuarios') {
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-sm">Personal del Restaurante</h3>
+        <span class="text-xs text-gray-400">{{ usuarios().length }} empleados</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">Nombre</th>
+              <th class="px-6 py-3">Cédula</th>
+              <th class="px-6 py-3">Email</th>
+              <th class="px-6 py-3">Rol</th>
+              <th class="px-6 py-3">Estado</th>
+              <th class="px-6 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (u of usuarios(); track u.uuid) {
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3.5 font-bold text-gray-900">{{ u.nombre }} {{ u.apellido }}</td>
+                <td class="px-6 py-3.5 font-mono text-gray-500">{{ u.cedula }}</td>
+                <td class="px-6 py-3.5 text-gray-600">{{ u.email }}</td>
+                <td class="px-6 py-3.5">
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider"
+                    [ngClass]="{
+                      'bg-purple-100 text-purple-800': u.rol === 'ADMIN',
+                      'bg-emerald-100 text-emerald-800': u.rol === 'MESERO',
+                      'bg-amber-100 text-amber-800': u.rol === 'COCINA',
+                      'bg-blue-100 text-blue-800': u.rol === 'CLIENTE'
+                    }">
+                    {{ u.rol }}
+                  </span>
+                </td>
+                <td class="px-6 py-3.5">
+                  <button (click)="toggleActivoUsuario(u)" class="cursor-pointer" title="Cambiar activo">
+                    <app-badge
+                      [text]="u.activo ? 'Activo' : 'Inactivo'"
+                      [variant]="u.activo ? 'success' : 'neutral'"
+                    ></app-badge>
+                  </button>
+                </td>
+                <td class="px-6 py-3.5 text-right space-x-1">
+                  <button
+                    (click)="openEditarUsuario(u)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="deleteUsuario(u)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="p-8 text-center text-gray-400">No hay empleados registrados</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 5: INSUMOS / INVENTARIO -->
+  @if (activeTab() === 'insumos') {
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-sm">Control de Stock e Insumos</h3>
+        <span class="text-xs text-gray-400">{{ insumos().length }} insumos registrados</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">Insumo</th>
+              <th class="px-6 py-3">Unidad</th>
+              <th class="px-6 py-3">Stock Actual</th>
+              <th class="px-6 py-3">Stock Mínimo</th>
+              <th class="px-6 py-3">Costo Promedio</th>
+              <th class="px-6 py-3">Alerta</th>
+              <th class="px-6 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (i of insumos(); track i.id) {
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3.5 font-bold text-gray-900">{{ i.nombre }}</td>
+                <td class="px-6 py-3.5 font-semibold text-gray-500">{{ i.unidadMedida }}</td>
+                <td class="px-6 py-3.5 font-mono text-sm" [ngClass]="i.stockActual <= i.stockMinimo ? 'text-red-600 font-bold' : 'text-gray-900'">
+                  {{ i.stockActual }}
+                </td>
+                <td class="px-6 py-3.5 font-mono text-gray-500">{{ i.stockMinimo }}</td>
+                <td class="px-6 py-3.5 font-bold text-emerald-800">${{ i.costoPromedio.toFixed(2) }}</td>
+                <td class="px-6 py-3.5">
+                  @if (i.stockActual <= i.stockMinimo) {
+                    <app-badge text="Stock Bajo" variant="danger"></app-badge>
+                  } @else {
+                    <app-badge text="Normal" variant="success"></app-badge>
+                  }
+                </td>
+                <td class="px-6 py-3.5 text-right space-x-1">
+                  <button
+                    (click)="openEditarInsumo(i)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="deleteInsumo(i)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="p-8 text-center text-gray-400">No hay insumos registrados</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 6: DISTRIBUIDORES -->
+  @if (activeTab() === 'distribuidores') {
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-sm">Directorio de Distribuidores y Proveedores</h3>
+        <span class="text-xs text-gray-400">{{ distribuidores().length }} proveedores</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">Razón Social</th>
+              <th class="px-6 py-3">RUC</th>
+              <th class="px-6 py-3">Contacto</th>
+              <th class="px-6 py-3">Teléfono / Email</th>
+              <th class="px-6 py-3">Categoría</th>
+              <th class="px-6 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (d of distribuidores(); track d.id) {
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3.5 font-bold text-gray-900">{{ d.razonSocial }}</td>
+                <td class="px-6 py-3.5 font-mono text-gray-500">{{ d.ruc }}</td>
+                <td class="px-6 py-3.5 text-gray-700">{{ d.nombreContacto || '-' }}</td>
+                <td class="px-6 py-3.5">
+                  <span class="block text-gray-800">{{ d.telefono || '-' }}</span>
+                  <span class="text-[11px] text-gray-400">{{ d.email || '-' }}</span>
+                </td>
+                <td class="px-6 py-3.5">
+                  <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
+                    {{ d.categoriaProveedor || 'General' }}
+                  </span>
+                </td>
+                <td class="px-6 py-3.5 text-right space-x-1">
+                  <button
+                    (click)="openEditarDistribuidor(d)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="deleteDistribuidor(d)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="p-8 text-center text-gray-400">No hay distribuidores registrados</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 7: CLIENTES -->
+  @if (activeTab() === 'clientes') {
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-sm">Directorio de Clientes Registrados</h3>
+        <span class="text-xs text-gray-400">{{ clientes().length }} clientes</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">Razón Social / Nombre</th>
+              <th class="px-6 py-3">Tipo & Identificación</th>
+              <th class="px-6 py-3">Email</th>
+              <th class="px-6 py-3">Teléfono</th>
+              <th class="px-6 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (c of clientes(); track c.uuid) {
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3.5 font-bold text-gray-900">{{ c.razonSocial }}</td>
+                <td class="px-6 py-3.5">
+                  <span class="text-[10px] uppercase font-bold text-gray-400 block">{{ c.tipoIdentificacion }}</span>
+                  <span class="font-mono text-gray-700">{{ c.identificacion }}</span>
+                </td>
+                <td class="px-6 py-3.5 text-gray-600">{{ c.email || '-' }}</td>
+                <td class="px-6 py-3.5 text-gray-600">{{ c.telefono || '-' }}</td>
+                <td class="px-6 py-3.5 text-right space-x-1">
+                  <button
+                    (click)="openEditarCliente(c)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="deleteCliente(c)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="p-8 text-center text-gray-400">No hay clientes registrados</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ========================================== -->
+<!-- MODALES DE CREACIÓN Y EDICIÓN (CRUDs)       -->
+<!-- ========================================== -->
+
+<!-- MODAL PLATO -->
+<app-modal
+  [isOpen]="platoModalOpen()"
+  [title]="editPlatoId() ? 'Editar Plato' : 'Nuevo Plato'"
+  (closed)="platoModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitPlato()" class="space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Nombre del Plato *</label>
+      <input
+        type="text"
+        [(ngModel)]="platoForm().nombre"
+        name="nombrePlato"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Seco de Chivo"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Categoría *</label>
+        <select
+          [(ngModel)]="platoForm().idCategoria"
+          name="catPlato"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none bg-white"
+        >
+          @for (c of categorias(); track c.id) {
+            <option [value]="c.id">{{ c.nombre }}</option>
+          }
+        </select>
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-gray-700 mb-1">
-          Descripción de la Preparación
-        </label>
-        <textarea
-          rows="2"
-          [ngModel]="descripcionPlato()"
-          (ngModelChange)="descripcionPlato.set($event)"
-          placeholder="Ingredientes principales y presentación..."
-          class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200"
-        ></textarea>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-gray-700 mb-1">
-          URL de la Imagen
-        </label>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Precio ($) *</label>
         <input
-          type="url"
-          [ngModel]="urlImagenPlato()"
-          (ngModelChange)="urlImagenPlato.set($event)"
-          placeholder="https://images.unsplash.com/..."
-          class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200"
+          type="number"
+          step="0.01"
+          [(ngModel)]="platoForm().precioUnitario"
+          name="precioPlato"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
         />
       </div>
+    </div>
 
-      <div class="flex items-center gap-2 pt-2">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
+      <textarea
+        [(ngModel)]="platoForm().descripcion"
+        name="descPlato"
+        rows="2"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ingredientes principales, guarniciones..."
+      ></textarea>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">URL Imagen</label>
+      <input
+        type="url"
+        [(ngModel)]="platoForm().urlImagen"
+        name="imgPlato"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="https://..."
+      />
+    </div>
+
+    <div class="flex items-center gap-6 pt-2">
+      <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
         <input
           type="checkbox"
-          id="aplicaIvaCheck"
-          [ngModel]="aplicaIvaPlato()"
-          (ngModelChange)="aplicaIvaPlato.set($event)"
-          class="rounded-sm border-gray-300 text-emerald-600 focus:ring-emerald-500"
+          [(ngModel)]="platoForm().aplicaIva"
+          name="aplicaIvaPlato"
+          class="rounded text-emerald-600 focus:ring-emerald-500"
         />
-        <label for="aplicaIvaCheck" class="text-xs font-semibold text-gray-700">
-          Aplica IVA 15%
-        </label>
+        Aplica IVA (15%)
+      </label>
+
+      <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+        <input
+          type="checkbox"
+          [(ngModel)]="platoForm().disponible"
+          name="dispPlato"
+          class="rounded text-emerald-600 focus:ring-emerald-500"
+        />
+        Disponible en Menú
+      </label>
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="platoModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Plato' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- MODAL CATEGORÍA -->
+<app-modal
+  [isOpen]="categoriaModalOpen()"
+  [title]="editCategoriaId() ? 'Editar Categoría' : 'Nueva Categoría'"
+  (closed)="categoriaModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitCategoria()" class="space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Nombre de la Categoría *</label>
+      <input
+        type="text"
+        [(ngModel)]="categoriaForm().nombre"
+        name="nombreCat"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Platos Fuertes, Bebidas, Postres"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Área de Impresión *</label>
+        <select
+          [(ngModel)]="categoriaForm().areaImpresion"
+          name="areaCat"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none bg-white"
+        >
+          <option value="COCINA">COCINA</option>
+          <option value="BAR">BAR</option>
+          <option value="CAJA">CAJA</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Orden Visual</label>
+        <input
+          type="number"
+          [(ngModel)]="categoriaForm().ordenVisual"
+          name="ordenCat"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
       </div>
     </div>
 
-    <div footer>
-      <app-button variant="outline" size="sm" (btnClick)="modalOpen.set(false)">
-        Cancelar
-      </app-button>
-      <app-button
-        variant="primary"
-        size="sm"
-        [disabled]="loadingSubmit()"
-        (btnClick)="onSubmitPlato()"
-      >
-        {{ loadingSubmit() ? 'Guardando...' : 'Crear Plato' }}
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="categoriaModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Categoría' }}
       </app-button>
     </div>
-  </app-modal>
-</div>
+  </form>
+</app-modal>
+
+<!-- MODAL MESA -->
+<app-modal
+  [isOpen]="mesaModalOpen()"
+  [title]="editMesaId() ? 'Editar Mesa' : 'Nueva Mesa'"
+  (closed)="mesaModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitMesa()" class="space-y-4">
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Número de Mesa *</label>
+        <input
+          type="number"
+          [(ngModel)]="mesaForm().numeroMesa"
+          name="numMesa"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Capacidad (Personas) *</label>
+        <input
+          type="number"
+          [(ngModel)]="mesaForm().capacidad"
+          name="capMesa"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Ubicación</label>
+      <input
+        type="text"
+        [(ngModel)]="mesaForm().ubicacion"
+        name="ubiMesa"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Terraza, Salón Principal, Barra"
+      />
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Estado Inicial</label>
+      <select
+        [(ngModel)]="mesaForm().estado"
+        name="estadoMesa"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none bg-white"
+      >
+        <option value="LIBRE">LIBRE</option>
+        <option value="OCUPADA">OCUPADA</option>
+        <option value="CUENTA">CUENTA</option>
+      </select>
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="mesaModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Mesa' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- MODAL PERSONAL / USUARIO -->
+<app-modal
+  [isOpen]="usuarioModalOpen()"
+  [title]="editUsuarioUuid() ? 'Editar Empleado' : 'Nuevo Empleado'"
+  (closed)="usuarioModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitUsuario()" class="space-y-4">
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Nombre *</label>
+        <input
+          type="text"
+          [(ngModel)]="usuarioForm().nombre"
+          name="nomUser"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Apellido *</label>
+        <input
+          type="text"
+          [(ngModel)]="usuarioForm().apellido"
+          name="apeUser"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Cédula *</label>
+        <input
+          type="text"
+          [(ngModel)]="usuarioForm().cedula"
+          name="cedUser"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Rol Operativo *</label>
+        <select
+          [(ngModel)]="usuarioForm().rol"
+          name="rolUser"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none bg-white font-bold"
+        >
+          <option value="MESERO">MESERO</option>
+          <option value="COCINA">COCINA</option>
+          <option value="ADMIN">ADMIN</option>
+          <option value="CLIENTE">CLIENTE</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Email *</label>
+      <input
+        type="email"
+        [(ngModel)]="usuarioForm().email"
+        name="emailUser"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+      />
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">
+        Contraseña {{ editUsuarioUuid() ? '(Dejar en blanco para no modificar)' : '*' }}
+      </label>
+      <input
+        type="password"
+        [(ngModel)]="usuarioForm().password"
+        name="passUser"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Mínimo 4 caracteres"
+      />
+    </div>
+
+    <div>
+      <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+        <input
+          type="checkbox"
+          [(ngModel)]="usuarioForm().activo"
+          name="actUser"
+          class="rounded text-emerald-600 focus:ring-emerald-500"
+        />
+        Usuario Activo
+      </label>
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="usuarioModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Empleado' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- MODAL INSUMO -->
+<app-modal
+  [isOpen]="insumoModalOpen()"
+  [title]="editInsumoId() ? 'Editar Insumo' : 'Nuevo Insumo'"
+  (closed)="insumoModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitInsumo()" class="space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Nombre del Insumo *</label>
+      <input
+        type="text"
+        [(ngModel)]="insumoForm().nombre"
+        name="nomInsumo"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Tomate Riñón, Carne de Res, Aceite"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Unidad de Medida *</label>
+        <select
+          [(ngModel)]="insumoForm().unidadMedida"
+          name="uniInsumo"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none bg-white"
+        >
+          <option value="KG">KG (Kilogramos)</option>
+          <option value="LT">LT (Litros)</option>
+          <option value="UNIDAD">UNIDAD (Piezas)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Costo Promedio ($) *</label>
+        <input
+          type="number"
+          step="0.01"
+          [(ngModel)]="insumoForm().costoPromedio"
+          name="costoInsumo"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Stock Actual *</label>
+        <input
+          type="number"
+          step="0.1"
+          [(ngModel)]="insumoForm().stockActual"
+          name="stockActInsumo"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Stock Mínimo *</label>
+        <input
+          type="number"
+          step="0.1"
+          [(ngModel)]="insumoForm().stockMinimo"
+          name="stockMinInsumo"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="insumoModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Insumo' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- MODAL DISTRIBUIDOR -->
+<app-modal
+  [isOpen]="distribuidorModalOpen()"
+  [title]="editDistribuidorId() ? 'Editar Distribuidor' : 'Nuevo Distribuidor'"
+  (closed)="distribuidorModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitDistribuidor()" class="space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Razón Social *</label>
+      <input
+        type="text"
+        [(ngModel)]="distribuidorForm().razonSocial"
+        name="razonDist"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Pronaca Cía. Ltda."
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">RUC *</label>
+        <input
+          type="text"
+          [(ngModel)]="distribuidorForm().ruc"
+          name="rucDist"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Categoría</label>
+        <input
+          type="text"
+          [(ngModel)]="distribuidorForm().categoriaProveedor"
+          name="catDist"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+          placeholder="Ej: Carnes, Lácteos, Abarrotes"
+        />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Contacto</label>
+        <input
+          type="text"
+          [(ngModel)]="distribuidorForm().nombreContacto"
+          name="contDist"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Teléfono</label>
+        <input
+          type="text"
+          [(ngModel)]="distribuidorForm().telefono"
+          name="telDist"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Email</label>
+      <input
+        type="email"
+        [(ngModel)]="distribuidorForm().email"
+        name="emailDist"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+      />
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Dirección</label>
+      <input
+        type="text"
+        [(ngModel)]="distribuidorForm().direccion"
+        name="dirDist"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+      />
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="distribuidorModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Distribuidor' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- MODAL CLIENTE -->
+<app-modal
+  [isOpen]="clienteModalOpen()"
+  [title]="editClienteUuid() ? 'Editar Cliente' : 'Nuevo Cliente'"
+  (closed)="clienteModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitCliente()" class="space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Razón Social o Nombre *</label>
+      <input
+        type="text"
+        [(ngModel)]="clienteForm().razonSocial"
+        name="razonCli"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Identificación *</label>
+        <select
+          [(ngModel)]="clienteForm().tipoIdentificacion"
+          name="tipoCli"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none bg-white font-bold"
+        >
+          <option value="CEDULA">CÉDULA</option>
+          <option value="RUC">RUC</option>
+          <option value="PASAPORTE">PASAPORTE</option>
+          <option value="CONSUMIDOR_FINAL">CONSUMIDOR FINAL</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Identificación *</label>
+        <input
+          type="text"
+          [(ngModel)]="clienteForm().identificacion"
+          name="ideCli"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Email</label>
+        <input
+          type="email"
+          [(ngModel)]="clienteForm().email"
+          name="emailCli"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Teléfono</label>
+        <input
+          type="text"
+          [(ngModel)]="clienteForm().telefono"
+          name="telCli"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Dirección</label>
+      <input
+        type="text"
+        [(ngModel)]="clienteForm().direccion"
+        name="dirCli"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+      />
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="clienteModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Cliente' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>

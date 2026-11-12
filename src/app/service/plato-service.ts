@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, tap, map } from 'rxjs';
 import { APP_CONFIG } from '../configs/config';
-import { CategoriaPlato, PageResponse, Plato } from '../models/plato';
+import { CategoriaPlato, CategoriaPlatoRequest, PageResponse, Plato } from '../models/plato';
 import { CacheService } from './cache-service';
 
 @Injectable({
@@ -97,6 +97,24 @@ export class PlatoService {
   deletePlato(id: number): Observable<void> {
     return this.http.delete<void>(`${this.PLATOS_URL}/${id}`).pipe(
       tap(() => this.cache.clear('platos'))
+    );
+  }
+
+  createCategoria(cat: CategoriaPlatoRequest): Observable<CategoriaPlato> {
+    return this.http.post<CategoriaPlato>(this.CATEGORIAS_URL, cat).pipe(
+      tap(() => this.cache.clear('categorias'))
+    );
+  }
+
+  updateCategoria(id: number, cat: CategoriaPlatoRequest): Observable<CategoriaPlato> {
+    return this.http.put<CategoriaPlato>(`${this.CATEGORIAS_URL}/${id}`, cat).pipe(
+      tap(() => this.cache.clear('categorias'))
+    );
+  }
+
+  deleteCategoria(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.CATEGORIAS_URL}/${id}`).pipe(
+      tap(() => this.cache.clear('categorias'))
     );
   }
 }
