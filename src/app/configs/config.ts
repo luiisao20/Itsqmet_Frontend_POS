@@ -13,6 +13,7 @@ export const APP_CONFIG = {
     CLIENTES: '/clientes',
     INSUMOS: '/insumos',
     DISTRIBUIDORES: '/distribuidores',
+    COMPRAS: '/compras',
     TURNOS: '/turnos',
     REPORTES: '/reportes',
   },

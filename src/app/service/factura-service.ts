@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { APP_CONFIG } from '../configs/config';
-import { Factura, FacturaRequest, Pago, PagoRequest } from '../models/factura';
+import { EstadoFactura, Factura, FacturaRequest, Pago, PagoRequest } from '../models/factura';
 import { PageResponse } from '../models/plato';
 
 @Injectable({
@@ -17,12 +17,30 @@ export class FacturaService {
     return this.http.get<PageResponse<Factura>>(`${this.FACTURAS_URL}?page=${page}&size=${size}`);
   }
 
+  searchFacturas(
+    secuencial?: string,
+    clienteFiltro?: string,
+    estado?: EstadoFactura,
+    page = 0,
+    size = 20
+  ): Observable<PageResponse<Factura>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (secuencial?.trim()) params = params.set('secuencial', secuencial.trim());
+    if (clienteFiltro?.trim()) params = params.set('clienteFiltro', clienteFiltro.trim());
+    if (estado) params = params.set('estado', estado);
+    return this.http.get<PageResponse<Factura>>(`${this.FACTURAS_URL}/buscar`, { params });
+  }
+
   getFacturaById(id: number): Observable<Factura> {
     return this.http.get<Factura>(`${this.FACTURAS_URL}/${id}`);
   }
 
   emitirFactura(req: FacturaRequest): Observable<Factura> {
     return this.http.post<Factura>(this.FACTURAS_URL, req);
+  }
+
+  anularFactura(id: number): Observable<Factura> {
+    return this.http.patch<Factura>(`${this.FACTURAS_URL}/${id}/anular`, {});
   }
 
   getMisFacturas(page = 0, size = 20): Observable<PageResponse<Factura>> {

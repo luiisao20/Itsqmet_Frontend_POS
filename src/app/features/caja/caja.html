@@ -6,11 +6,32 @@
         Emisión de facturas electrónicas autorizadas y recaudación de pagos (Efectivo, Tarjeta, Transferencia)
       </p>
     </div>
+
+    <!-- Switcher de Vistas -->
+    <div class="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-emerald-100 shadow-xs">
+      <button
+        type="button"
+        (click)="vistaModo.set('comandas')"
+        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        [ngClass]="vistaModo() === 'comandas' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+      >
+        🧾 Comandas por Cobrar ({{ pedidosPorCobrar().length }})
+      </button>
+      <button
+        type="button"
+        (click)="vistaModo.set('historial')"
+        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        [ngClass]="vistaModo() === 'historial' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+      >
+        📋 Historial de Facturas ({{ todasFacturas().length }})
+      </button>
+    </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Columna 1 y 2: Pedidos Pendientes de Cobro -->
-    <div class="lg:col-span-2 space-y-4">
+  @if (vistaModo() === 'comandas') {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Columna 1 y 2: Pedidos Pendientes de Cobro -->
+      <div class="lg:col-span-2 space-y-4">
       <div class="flex items-center justify-between">
         <h3 class="text-sm font-bold text-gray-800">
           Comandas Listas para Facturar ({{ pedidosPorCobrar().length }})
@@ -99,13 +120,23 @@
                 </div>
                 <div class="text-right">
                   <span class="font-bold text-emerald-700 block text-sm">${{ f.total.toFixed(2) }}</span>
-                  <button
-                    type="button"
-                    (click)="openPagoModal(f)"
-                    class="text-[11px] text-emerald-600 hover:text-emerald-800 font-semibold"
-                  >
-                    + Registrar Pago
-                  </button>
+                  <div class="flex items-center justify-end gap-1.5 mt-0.5">
+                    <button
+                      type="button"
+                      (click)="openVerDetalleFactura(f)"
+                      class="text-[11px] text-gray-500 hover:text-emerald-700 font-semibold cursor-pointer"
+                    >
+                      🍽️ Platillos
+                    </button>
+                    <span class="text-gray-300">|</span>
+                    <button
+                      type="button"
+                      (click)="openPagoModal(f)"
+                      class="text-[11px] text-emerald-600 hover:text-emerald-800 font-semibold cursor-pointer"
+                    >
+                      + Pago
+                    </button>
+                  </div>
                 </div>
               </div>
             }
@@ -114,6 +145,126 @@
       </div>
     </div>
   </div>
+} @else {
+    <!-- VISTA TABLA COMPLETA DE FACTURAS EMITIDAS CON PLATILLOS -->
+    <div class="space-y-6">
+      <div class="bg-white rounded-3xl border border-emerald-100 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="text-gray-400 font-semibold">Secuencial:</span>
+            <input
+              type="text"
+              [ngModel]="filtroSecuencial()"
+              (ngModelChange)="filtroSecuencial.set($event); loadTodasFacturas()"
+              placeholder="Ej: 001-001..."
+              class="border border-gray-200 rounded-lg px-2.5 py-1 text-xs outline-none focus:border-emerald-600 font-mono"
+            />
+          </div>
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="text-gray-400 font-semibold">Cliente:</span>
+            <input
+              type="text"
+              [ngModel]="filtroCliente()"
+              (ngModelChange)="filtroCliente.set($event); loadTodasFacturas()"
+              placeholder="Nombre o Cédula..."
+              class="border border-gray-200 rounded-lg px-2.5 py-1 text-xs outline-none focus:border-emerald-600"
+            />
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="loadTodasFacturas()"
+          class="text-xs text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 cursor-pointer"
+        >
+          🔄 Actualizar
+        </button>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h3 class="font-bold text-gray-800 text-sm">Historial de Facturas Emitidas y Ventas</h3>
+          <span class="text-xs text-gray-400">{{ todasFacturas().length }} facturas</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+              <tr>
+                <th class="px-6 py-3">N° Secuencial</th>
+                <th class="px-6 py-3">Cliente</th>
+                <th class="px-6 py-3">Tipo</th>
+                <th class="px-6 py-3">Fecha Emisión</th>
+                <th class="px-6 py-3 text-right">Subtotal</th>
+                <th class="px-6 py-3 text-right">Total ($)</th>
+                <th class="px-6 py-3 text-center">Estado</th>
+                <th class="px-6 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-gray-700">
+              @for (f of todasFacturas(); track f.id) {
+                <tr class="hover:bg-emerald-50/20 transition-colors">
+                  <td class="px-6 py-3.5 font-mono font-bold text-gray-900">
+                    {{ f.numeroSecuencial }}
+                  </td>
+                  <td class="px-6 py-3.5">
+                    <span class="font-bold text-gray-900 block">{{ f.razonSocialCliente }}</span>
+                    <span class="text-[10px] font-mono text-gray-400">{{ f.identificacionCliente }}</span>
+                  </td>
+                  <td class="px-6 py-3.5">
+                    @if (f.tipoPedido === 'SALON') {
+                      <span class="bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                        Mesa {{ f.numeroMesa || '-' }}
+                      </span>
+                    } @else {
+                      <span class="bg-purple-50 text-purple-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                        Llevar
+                      </span>
+                    }
+                  </td>
+                  <td class="px-6 py-3.5 text-gray-600 font-mono text-[11px]">
+                    {{ f.fechaEmision | date:'short' }}
+                  </td>
+                  <td class="px-6 py-3.5 text-right font-mono text-gray-600">
+                    ${{ f.subtotal.toFixed(2) }}
+                  </td>
+                  <td class="px-6 py-3.5 text-right font-bold text-emerald-950 font-mono text-sm">
+                    ${{ f.total.toFixed(2) }}
+                  </td>
+                  <td class="px-6 py-3.5 text-center">
+                    @if (f.estado === 'EMITIDA') {
+                      <app-badge text="EMITIDA" variant="success"></app-badge>
+                    } @else {
+                      <app-badge text="ANULADA" variant="danger"></app-badge>
+                    }
+                  </td>
+                  <td class="px-6 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+                    <button
+                      type="button"
+                      (click)="openVerDetalleFactura(f)"
+                      class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-lg cursor-pointer transition-colors"
+                    >
+                      🍽️ Ver Platillos ({{ f.detalles?.length || 0 }})
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openPagoModal(f)"
+                      class="px-2 py-1 text-[11px] font-bold bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg cursor-pointer transition-colors shadow-xs"
+                    >
+                      + Cobrar
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="8" class="p-8 text-center text-gray-400">No se encontraron facturas emitidas</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- Modal Emitir Factura -->
   <app-modal
@@ -246,6 +397,108 @@
         (btnClick)="registrarPago()"
       >
         {{ loadingPago() ? 'Registrando...' : 'Finalizar Pago' }}
+      </app-button>
+    </div>
+  </app-modal>
+
+  <!-- Modal Detalle Factura / Platillos Vendidos -->
+  <app-modal
+    [isOpen]="facturaDetalleModalOpen()"
+    [title]="'Comprobante de Venta: ' + (selectedFacturaDetalle()?.numeroSecuencial || '')"
+    (closeModal)="facturaDetalleModalOpen.set(false)"
+  >
+    <div body class="space-y-4">
+      <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2 text-xs">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="font-black text-gray-900 text-sm block">{{ selectedFacturaDetalle()?.numeroSecuencial }}</span>
+            <span class="text-[10px] font-mono text-gray-400">Autorización SRI: {{ selectedFacturaDetalle()?.claveAccesoSri || 'N/A' }}</span>
+          </div>
+          <div class="text-right">
+            @if (selectedFacturaDetalle()?.estado === 'EMITIDA') {
+              <app-badge text="EMITIDA" variant="success"></app-badge>
+            } @else {
+              <app-badge text="ANULADA" variant="danger"></app-badge>
+            }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200/60">
+          <div>
+            <span class="text-gray-400 font-semibold block text-[11px]">Cliente:</span>
+            <span class="font-bold text-gray-900">{{ selectedFacturaDetalle()?.razonSocialCliente }}</span>
+            <span class="text-[10px] text-gray-500 font-mono block">ID: {{ selectedFacturaDetalle()?.identificacionCliente }}</span>
+          </div>
+          <div>
+            <span class="text-gray-400 font-semibold block text-[11px]">Origen / Emisión:</span>
+            <span class="font-bold text-gray-800">
+              {{ selectedFacturaDetalle()?.tipoPedido === 'SALON' ? 'Mesa ' + (selectedFacturaDetalle()?.numeroMesa || '') : 'Para Llevar' }}
+            </span>
+            <span class="text-[10px] text-gray-500 block">{{ selectedFacturaDetalle()?.fechaEmision | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platillos Vendidos -->
+      <div>
+        <h4 class="text-xs font-bold text-gray-800 mb-2">Platillos Vendidos en esta Orden</h4>
+        <div class="overflow-x-auto border border-gray-100 rounded-xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+              <tr>
+                <th class="px-4 py-2.5 text-center">Cant.</th>
+                <th class="px-4 py-2.5">Platillo</th>
+                <th class="px-4 py-2.5 text-right">Precio Unit.</th>
+                <th class="px-4 py-2.5 text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-gray-700">
+              @for (d of selectedFacturaDetalle()?.detalles; track d.idPlato) {
+                <tr>
+                  <td class="px-4 py-2.5 text-center font-mono font-bold">{{ d.cantidad }}x</td>
+                  <td class="px-4 py-2.5 font-bold text-gray-900">
+                    {{ d.nombrePlato }}
+                    @if (d.notasPreparacion) {
+                      <span class="block text-[10px] text-gray-400 font-normal italic">Nota: {{ d.notasPreparacion }}</span>
+                    }
+                  </td>
+                  <td class="px-4 py-2.5 text-right font-mono">${{ d.precioUnitario.toFixed(2) }}</td>
+                  <td class="px-4 py-2.5 text-right font-mono font-bold text-gray-900">${{ d.subtotal.toFixed(2) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="p-4 text-center text-gray-400">Sin platillos desglosados</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Totales -->
+      <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 space-y-1 text-xs">
+        <div class="flex justify-between text-gray-600">
+          <span>Subtotal:</span>
+          <span class="font-mono font-semibold">${{ selectedFacturaDetalle()?.subtotal?.toFixed(2) }}</span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>IVA (15%):</span>
+          <span class="font-mono font-semibold">${{ selectedFacturaDetalle()?.subtotalIva?.toFixed(2) }}</span>
+        </div>
+        <div class="flex justify-between text-amber-800 font-semibold">
+          <span>Propina:</span>
+          <span class="font-mono">${{ selectedFacturaDetalle()?.propina?.toFixed(2) }}</span>
+        </div>
+        <div class="flex justify-between text-emerald-950 font-black text-sm pt-1.5 border-t border-gray-200">
+          <span>TOTAL:</span>
+          <span class="font-mono text-base">${{ selectedFacturaDetalle()?.total?.toFixed(2) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div footer>
+      <app-button variant="outline" size="sm" (btnClick)="facturaDetalleModalOpen.set(false)">
+        Cerrar
       </app-button>
     </div>
   </app-modal>

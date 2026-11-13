@@ -1,3 +1,5 @@
+import { DetallePedido } from './pedido';
+
 export type EstadoFactura = 'EMITIDA' | 'ANULADA';
 export type MetodoPago = 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA';
 
@@ -17,6 +19,9 @@ export interface Factura {
   propina: number;
   total: number;
   estado: EstadoFactura;
+  tipoPedido?: 'SALON' | 'LLEVAR';
+  numeroMesa?: number;
+  detalles?: DetallePedido[];
   createdAt: string;
 }
 

@@ -9,6 +9,7 @@ import { InsumoService } from '../../service/insumo-service';
 import { DistribuidorService } from '../../service/distribuidor-service';
 import { ClienteService } from '../../service/cliente-service';
 import { TurnoService } from '../../service/turno-service';
+import { CompraService } from '../../service/compra-service';
 
 import { AreaImpresion, CategoriaPlato, Plato } from '../../models/plato';
 import { EstadoMesa, Mesa } from '../../models/mesa';
@@ -18,12 +19,24 @@ import { Insumo, UnidadMedida } from '../../models/insumo';
 import { Distribuidor } from '../../models/distribuidor';
 import { Cliente } from '../../models/cliente';
 import { Turno } from '../../models/turno';
+import { CompraInsumo, CompraInsumoRequest, EstadoCompra } from '../../models/compra';
+import { Factura } from '../../models/factura';
 
 import { Badge } from '../../shared/badge/badge';
 import { Button } from '../../shared/button/button';
 import { Modal } from '../../shared/modal/modal';
 
-export type AdminTab = 'platos' | 'categorias' | 'mesas' | 'usuarios' | 'insumos' | 'distribuidores' | 'clientes' | 'turnos';
+export type AdminTab =
+  | 'platos'
+  | 'categorias'
+  | 'mesas'
+  | 'usuarios'
+  | 'insumos'
+  | 'distribuidores'
+  | 'clientes'
+  | 'turnos'
+  | 'compras'
+  | 'facturas';
 
 @Component({
   selector: 'app-admin',
@@ -40,6 +53,7 @@ export class Admin implements OnInit {
   private distribuidorService = inject(DistribuidorService);
   private clienteService = inject(ClienteService);
   private turnoService = inject(TurnoService);
+  private compraService = inject(CompraService);
 
   activeTab = signal<AdminTab>('platos');
   loading = signal<boolean>(false);
@@ -55,9 +69,35 @@ export class Admin implements OnInit {
   clientes = signal<Cliente[]>([]);
   totalFacturas = signal<number>(0);
   turnos = signal<Turno[]>([]);
+  compras = signal<CompraInsumo[]>([]);
+  facturas = signal<Factura[]>([]);
 
   // Filtros
   searchTerm = signal<string>('');
+  filtroDistribuidorCompra = signal<number | null>(null);
+  filtroNumeroFacturaCompra = signal<string>('');
+  filtroSecuencialFactura = signal<string>('');
+  filtroClienteFactura = signal<string>('');
+
+  // Modales Compras
+  compraDetalleModalOpen = signal<boolean>(false);
+  selectedCompra = signal<CompraInsumo | null>(null);
+  compraCrearModalOpen = signal<boolean>(false);
+  compraForm = signal<{
+    idDistribuidor: number | null;
+    numeroFacturaProveedor: string;
+    estado: EstadoCompra;
+    detalles: { idInsumo: number; cantidad: number; costoUnitario: number }[];
+  }>({
+    idDistribuidor: null,
+    numeroFacturaProveedor: '',
+    estado: 'RECIBIDA',
+    detalles: [],
+  });
+
+  // Modal Factura
+  facturaDetalleModalOpen = signal<boolean>(false);
+  selectedFactura = signal<Factura | null>(null);
 
   // Modales
   platoModalOpen = signal<boolean>(false);
@@ -175,6 +215,8 @@ export class Admin implements OnInit {
     this.loadDistribuidores();
     this.loadClientes();
     this.loadTurnos();
+    this.loadCompras();
+    this.loadFacturas();
 
     this.facturaService.getFacturas().subscribe({
       next: (res) => this.totalFacturas.set(res.totalElements),
@@ -767,6 +809,148 @@ export class Admin implements OnInit {
         this.loadTurnos();
       },
       error: (e) => alert(e.error?.message || 'Error al cerrar turno'),
+    });
+  }
+
+  // --- FACTURAS DE COMPRAS A PROVEEDORES ---
+  loadCompras(): void {
+    this.compraService
+      .searchCompras(
+        this.filtroNumeroFacturaCompra() || undefined,
+        this.filtroDistribuidorCompra() ? Number(this.filtroDistribuidorCompra()) : undefined,
+        undefined,
+        0,
+        100
+      )
+      .subscribe({
+        next: (res) => this.compras.set(res.content),
+        error: () => {},
+      });
+  }
+
+  openVerDetalleCompra(c: CompraInsumo): void {
+    this.selectedCompra.set(c);
+    this.compraDetalleModalOpen.set(true);
+  }
+
+  openCrearCompra(): void {
+    const distId = this.distribuidores().length > 0 ? this.distribuidores()[0].id : null;
+    const insId = this.insumos().length > 0 ? this.insumos()[0].id : 1;
+    this.compraForm.set({
+      idDistribuidor: distId,
+      numeroFacturaProveedor: '',
+      estado: 'RECIBIDA',
+      detalles: [{ idInsumo: insId, cantidad: 10, costoUnitario: 1.5 }],
+    });
+    this.compraCrearModalOpen.set(true);
+  }
+
+  addDetalleCompraRow(): void {
+    const insId = this.insumos().length > 0 ? this.insumos()[0].id : 1;
+    const f = this.compraForm();
+    this.compraForm.set({
+      ...f,
+      detalles: [...f.detalles, { idInsumo: insId, cantidad: 1, costoUnitario: 1.0 }],
+    });
+  }
+
+  removeDetalleCompraRow(index: number): void {
+    const f = this.compraForm();
+    if (f.detalles.length <= 1) return;
+    this.compraForm.set({
+      ...f,
+      detalles: f.detalles.filter((_, i) => i !== index),
+    });
+  }
+
+  get totalCalculadoCompra(): number {
+    return this.compraForm().detalles.reduce(
+      (acc, d) => acc + (Number(d.cantidad) || 0) * (Number(d.costoUnitario) || 0),
+      0
+    );
+  }
+
+  submitCrearCompra(): void {
+    const f = this.compraForm();
+    if (!f.idDistribuidor) {
+      alert('Debe seleccionar un distribuidor');
+      return;
+    }
+    if (!f.numeroFacturaProveedor?.trim()) {
+      alert('Ingrese el número de factura del proveedor');
+      return;
+    }
+    if (f.detalles.length === 0) {
+      alert('Debe agregar al menos un insumo');
+      return;
+    }
+
+    this.loadingSubmit.set(true);
+    const req: CompraInsumoRequest = {
+      idDistribuidor: Number(f.idDistribuidor),
+      numeroFacturaProveedor: f.numeroFacturaProveedor.trim(),
+      estado: f.estado,
+      detalles: f.detalles.map((d) => ({
+        idInsumo: Number(d.idInsumo),
+        cantidad: Number(d.cantidad),
+        costoUnitario: Number(d.costoUnitario),
+      })),
+    };
+
+    this.compraService.registrarCompra(req).subscribe({
+      next: () => {
+        this.loadingSubmit.set(false);
+        this.compraCrearModalOpen.set(false);
+        this.loadCompras();
+        this.loadInsumos();
+        alert('Factura de compra registrada con éxito. Se actualizó el stock y costo promedio.');
+      },
+      error: (err) => {
+        this.loadingSubmit.set(false);
+        alert(err.error?.message || 'Error al registrar la compra');
+      },
+    });
+  }
+
+  cambiarEstadoCompra(c: CompraInsumo, nuevoEstado: EstadoCompra): void {
+    this.compraService.updateEstado(c.id, nuevoEstado).subscribe({
+      next: () => this.loadCompras(),
+      error: (e) => alert(e.error?.message || 'Error al cambiar estado'),
+    });
+  }
+
+  // --- FACTURAS EMITIDAS (VENTAS) ---
+  loadFacturas(): void {
+    this.facturaService
+      .searchFacturas(
+        this.filtroSecuencialFactura() || undefined,
+        this.filtroClienteFactura() || undefined,
+        undefined,
+        0,
+        100
+      )
+      .subscribe({
+        next: (res) => {
+          this.facturas.set(res.content);
+          this.totalFacturas.set(res.totalElements);
+        },
+        error: () => {},
+      });
+  }
+
+  openVerDetalleFactura(f: Factura): void {
+    this.selectedFactura.set(f);
+    this.facturaDetalleModalOpen.set(true);
+  }
+
+  anularFacturaAdmin(f: Factura): void {
+    if (!confirm(`¿Seguro que deseas anular la factura "${f.numeroSecuencial}"?`)) return;
+    this.facturaService.anularFactura(f.id).subscribe({
+      next: () => {
+        alert('Factura anulada con éxito');
+        this.loadFacturas();
+      },
+      error: (e) => alert(e.error?.message || 'Error al anular factura'),
     });
   }
 }

@@ -12,16 +12,24 @@ import { Modal } from '../../shared/modal/modal';
 @Component({
   selector: 'app-caja',
   standalone: true,
-  imports: [CommonModule, FormsModule, Button, Modal],
+  imports: [CommonModule, FormsModule, Badge, Button, Modal],
   templateUrl: './caja.html',
 })
 export class Caja implements OnInit {
   private pedidoService = inject(PedidoService);
   private facturaService = inject(FacturaService);
 
+  vistaModo = signal<'comandas' | 'historial'>('comandas');
   pedidosPorCobrar = signal<Pedido[]>([]);
   facturasRecientes = signal<Factura[]>([]);
+  todasFacturas = signal<Factura[]>([]);
+  filtroSecuencial = signal<string>('');
+  filtroCliente = signal<string>('');
   loading = signal<boolean>(true);
+
+  // Modal Detalle Factura / Platillos Vendidos
+  facturaDetalleModalOpen = signal<boolean>(false);
+  selectedFacturaDetalle = signal<Factura | null>(null);
 
   // Modal Facturar
   facturaModalOpen = signal<boolean>(false);
@@ -59,6 +67,28 @@ export class Caja implements OnInit {
         this.facturasRecientes.set(res.content);
       },
     });
+
+    this.loadTodasFacturas();
+  }
+
+  loadTodasFacturas(): void {
+    this.facturaService
+      .searchFacturas(
+        this.filtroSecuencial() || undefined,
+        this.filtroCliente() || undefined,
+        undefined,
+        0,
+        50
+      )
+      .subscribe({
+        next: (res) => this.todasFacturas.set(res.content),
+        error: () => {},
+      });
+  }
+
+  openVerDetalleFactura(factura: Factura): void {
+    this.selectedFacturaDetalle.set(factura);
+    this.facturaDetalleModalOpen.set(true);
   }
 
   openFacturarModal(pedido: Pedido): void {
