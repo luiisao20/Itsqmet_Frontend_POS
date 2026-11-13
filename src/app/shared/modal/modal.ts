@@ -11,10 +11,16 @@ export class Modal {
   isOpen = input<boolean>(false);
   title = input<string>('');
   closeModal = output<void>();
+  closed = output<void>();
+
+  close() {
+    this.closeModal.emit();
+    this.closed.emit();
+  }
 
   onBackdropClick(event: MouseEvent) {
     if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
-      this.closeModal.emit();
+      this.close();
     }
   }
 }

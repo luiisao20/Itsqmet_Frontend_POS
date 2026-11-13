@@ -10,8 +10,8 @@
         <h3 class="text-lg font-semibold text-emerald-950">{{ title() }}</h3>
         <button
           type="button"
-          (click)="closeModal.emit()"
-          class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-white"
+          (click)="close()"
+          class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-white cursor-pointer"
         >
           ✕
         </button>
@@ -19,9 +19,10 @@
 
       <div class="p-6 overflow-y-auto">
         <ng-content select="[body]" />
+        <ng-content />
       </div>
 
-      <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+      <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2 empty:hidden">
         <ng-content select="[footer]" />
       </div>
     </div>
