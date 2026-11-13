@@ -1,0 +1,262 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Encabezado con Filtro de Fechas -->
+  <div class="pb-6 mb-8 border-b border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <h1 class="text-2xl font-black text-emerald-950">Analítica Económica y Reportes</h1>
+        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+          ODS 8
+        </span>
+      </div>
+      <p class="text-xs text-gray-500">
+        Monitoreo de ingresos formales, rentabilidad por receta, distribución de propinas e impacto en proveedores locales
+      </p>
+    </div>
+
+    <!-- Barra de Filtro de Fechas -->
+    <div class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-emerald-100 shadow-xs">
+      <div class="flex items-center gap-1.5 text-xs text-gray-600">
+        <label class="font-bold text-[11px] text-gray-500">Desde:</label>
+        <input
+          type="date"
+          [ngModel]="fechaDesde()"
+          (ngModelChange)="fechaDesde.set($event)"
+          class="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none focus:border-emerald-600 font-mono"
+        />
+      </div>
+
+      <div class="flex items-center gap-1.5 text-xs text-gray-600">
+        <label class="font-bold text-[11px] text-gray-500">Hasta:</label>
+        <input
+          type="date"
+          [ngModel]="fechaHasta()"
+          (ngModelChange)="fechaHasta.set($event)"
+          class="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none focus:border-emerald-600 font-mono"
+        />
+      </div>
+
+      <app-button variant="primary" size="sm" (btnClick)="loadReportes()" [disabled]="loading()">
+        {{ loading() ? 'Cargando...' : 'Filtrar' }}
+      </app-button>
+    </div>
+  </div>
+
+  <!-- KPI CARDS SUPERIORES -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- Card 1: Ventas Totales -->
+    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
+        💵
+      </div>
+      <div>
+        <span class="text-[11px] text-gray-400 font-medium block">Total Facturado (SRI)</span>
+        <span class="text-2xl font-black text-emerald-950">
+          ${{ (resumen()?.totalFacturado || 0).toFixed(2) }}
+        </span>
+        <span class="text-[10px] text-emerald-700 font-semibold block mt-0.5">
+          {{ resumen()?.totalPedidos || 0 }} facturas emitidas
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 2: Pedidos Salón vs Llevar -->
+    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
+        🍽️
+      </div>
+      <div>
+        <span class="text-[11px] text-gray-400 font-medium block">Distribución de Ventas</span>
+        <div class="flex items-baseline gap-2 mt-0.5">
+          <span class="text-xl font-black text-emerald-950">{{ resumen()?.pedidosSalon || 0 }}</span>
+          <span class="text-[11px] text-gray-400">Salón</span>
+          <span class="text-gray-300">|</span>
+          <span class="text-xl font-black text-emerald-950">{{ resumen()?.pedidosLlevar || 0 }}</span>
+          <span class="text-[11px] text-gray-400">Llevar</span>
+        </div>
+        <span class="text-[10px] text-gray-400 block mt-0.5">Comercio electrónico y presencial</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Propinas Transparentes -->
+    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl font-bold">
+        🪙
+      </div>
+      <div>
+        <span class="text-[11px] text-gray-400 font-medium block">Propinas Recaudadas</span>
+        <span class="text-2xl font-black text-amber-950">
+          ${{ (resumen()?.totalPropinas || 0).toFixed(2) }}
+        </span>
+        <span class="text-[10px] text-amber-700 font-semibold block mt-0.5">
+          Fondo transparente para personal (ODS 8.5)
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 4: Fomento a Proveedores Locales -->
+    <div class="bg-white rounded-3xl border border-emerald-100 p-5 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center text-2xl font-bold">
+        🌱
+      </div>
+      <div>
+        <span class="text-[11px] text-gray-400 font-medium block">Compras Locales</span>
+        <span class="text-2xl font-black text-blue-950">
+          {{ porcentajeComprasLocales().toFixed(1) }}%
+        </span>
+        <span class="text-[10px] text-blue-700 font-semibold block mt-0.5">
+          ${{ totalGastoLocal().toFixed(2) }} en productores locales
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- TABLA 1: PLATOS MÁS VENDIDOS -->
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-gray-900 text-sm">Platos Más Vendidos</h3>
+          <p class="text-[11px] text-gray-400">Demanda real de la carta para optimización del menú</p>
+        </div>
+        <span class="text-xs text-gray-400 font-semibold">Top 10</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">Plato</th>
+              <th class="px-6 py-3 text-center">Unidades</th>
+              <th class="px-6 py-3 text-right">Ingresos ($)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (p of platosPopulares(); track p.idPlato; let idx = $index) {
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3 font-semibold text-gray-900 flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center justify-center">
+                    {{ idx + 1 }}
+                  </span>
+                  {{ p.nombrePlato }}
+                </td>
+                <td class="px-6 py-3 text-center font-mono font-bold text-gray-700">
+                  {{ p.totalVendido }}
+                </td>
+                <td class="px-6 py-3 text-right font-bold text-emerald-800">
+                  ${{ p.totalIngresos.toFixed(2) }}
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="p-8 text-center text-gray-400">No hay ventas registradas en este período</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TABLA 2: GASTOS POR PROVEEDOR (ODS 8.3 - Cadena de Suministro) -->
+    <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-gray-900 text-sm">Compras a Proveedores</h3>
+          <p class="text-[11px] text-gray-400">Trazabilidad de compras y apoyo a la economía comunitaria</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-6 py-3">Distribuidor</th>
+              <th class="px-6 py-3">Origen</th>
+              <th class="px-6 py-3 text-center">N° Compras</th>
+              <th class="px-6 py-3 text-right">Monto Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (g of gastosProveedores(); track g.idDistribuidor) {
+              <tr class="hover:bg-emerald-50/20 transition-colors">
+                <td class="px-6 py-3 font-semibold text-gray-900">{{ g.razonSocial }}</td>
+                <td class="px-6 py-3">
+                  @if (g.esProveedorLocal) {
+                    <app-badge text="Local (ODS 8)" variant="success"></app-badge>
+                  } @else {
+                    <app-badge text="Nacional" variant="neutral"></app-badge>
+                  }
+                </td>
+                <td class="px-6 py-3 text-center font-mono">{{ g.cantidadCompras }}</td>
+                <td class="px-6 py-3 text-right font-bold text-gray-900">
+                  ${{ g.totalCompras.toFixed(2) }}
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="p-8 text-center text-gray-400">No hay compras registradas en este período</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA 3: RENTABILIDAD Y MÁRGENES POR RECETA (Meta ODS 8.4: Eficiencia de Costos) -->
+  <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div>
+        <h3 class="font-bold text-gray-900 text-sm">Rentabilidad y Margen Real por Plato</h3>
+        <p class="text-[11px] text-gray-400">
+          Cálculo exacto comparando el Precio de Venta vs. el Costo de los Insumos de la Receta
+        </p>
+      </div>
+      <span class="text-xs text-gray-400 font-semibold">{{ margenes().length }} platos calculados</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+          <tr>
+            <th class="px-6 py-3">Plato</th>
+            <th class="px-6 py-3">Precio Venta</th>
+            <th class="px-6 py-3">Costo Receta (Insumos)</th>
+            <th class="px-6 py-3">Margen Bruto ($)</th>
+            <th class="px-6 py-3">Rentabilidad (%)</th>
+            <th class="px-6 py-3 text-center">Diagnóstico</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 text-gray-700">
+          @for (m of margenes(); track m.idPlato) {
+            <tr class="hover:bg-emerald-50/20 transition-colors">
+              <td class="px-6 py-3.5 font-bold text-gray-900">{{ m.nombrePlato }}</td>
+              <td class="px-6 py-3.5 font-mono font-bold text-gray-800">${{ m.precioVenta.toFixed(2) }}</td>
+              <td class="px-6 py-3.5 font-mono text-gray-500">${{ m.costoReceta.toFixed(2) }}</td>
+              <td class="px-6 py-3.5 font-mono font-bold text-emerald-800">
+                ${{ m.margenGanancia.toFixed(2) }}
+              </td>
+              <td class="px-6 py-3.5 font-bold font-mono">
+                <span [ngClass]="m.porcentajeMargen >= 50 ? 'text-emerald-700' : m.porcentajeMargen >= 30 ? 'text-amber-700' : 'text-red-600'">
+                  {{ m.porcentajeMargen.toFixed(1) }}%
+                </span>
+              </td>
+              <td class="px-6 py-3.5 text-center">
+                @if (m.porcentajeMargen >= 50) {
+                  <app-badge text="Excelente" variant="success"></app-badge>
+                } @else if (m.porcentajeMargen >= 30) {
+                  <app-badge text="Saludable" variant="info"></app-badge>
+                } @else {
+                  <app-badge text="Margen Crítico" variant="danger"></app-badge>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="p-8 text-center text-gray-400">No hay platos configurados con recetas</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

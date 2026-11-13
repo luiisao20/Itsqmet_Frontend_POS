@@ -8,6 +8,7 @@ import { UsuarioService } from '../../service/usuario-service';
 import { InsumoService } from '../../service/insumo-service';
 import { DistribuidorService } from '../../service/distribuidor-service';
 import { ClienteService } from '../../service/cliente-service';
+import { TurnoService } from '../../service/turno-service';
 
 import { AreaImpresion, CategoriaPlato, Plato } from '../../models/plato';
 import { EstadoMesa, Mesa } from '../../models/mesa';
@@ -16,12 +17,13 @@ import { RolUsuario, TipoIdentificacion } from '../../models/auth';
 import { Insumo, UnidadMedida } from '../../models/insumo';
 import { Distribuidor } from '../../models/distribuidor';
 import { Cliente } from '../../models/cliente';
+import { Turno } from '../../models/turno';
 
 import { Badge } from '../../shared/badge/badge';
 import { Button } from '../../shared/button/button';
 import { Modal } from '../../shared/modal/modal';
 
-export type AdminTab = 'platos' | 'categorias' | 'mesas' | 'usuarios' | 'insumos' | 'distribuidores' | 'clientes';
+export type AdminTab = 'platos' | 'categorias' | 'mesas' | 'usuarios' | 'insumos' | 'distribuidores' | 'clientes' | 'turnos';
 
 @Component({
   selector: 'app-admin',
@@ -37,6 +39,7 @@ export class Admin implements OnInit {
   private insumoService = inject(InsumoService);
   private distribuidorService = inject(DistribuidorService);
   private clienteService = inject(ClienteService);
+  private turnoService = inject(TurnoService);
 
   activeTab = signal<AdminTab>('platos');
   loading = signal<boolean>(false);
@@ -51,6 +54,7 @@ export class Admin implements OnInit {
   distribuidores = signal<Distribuidor[]>([]);
   clientes = signal<Cliente[]>([]);
   totalFacturas = signal<number>(0);
+  turnos = signal<Turno[]>([]);
 
   // Filtros
   searchTerm = signal<string>('');
@@ -131,6 +135,7 @@ export class Admin implements OnInit {
     email: '',
     direccion: '',
     categoriaProveedor: 'General',
+    esProveedorLocal: false,
   });
 
   clienteModalOpen = signal<boolean>(false);
@@ -169,6 +174,7 @@ export class Admin implements OnInit {
     this.loadInsumos();
     this.loadDistribuidores();
     this.loadClientes();
+    this.loadTurnos();
 
     this.facturaService.getFacturas().subscribe({
       next: (res) => this.totalFacturas.set(res.totalElements),
@@ -594,6 +600,7 @@ export class Admin implements OnInit {
       email: '',
       direccion: '',
       categoriaProveedor: 'Alimentos',
+      esProveedorLocal: false,
     });
     this.distribuidorModalOpen.set(true);
   }
@@ -608,6 +615,7 @@ export class Admin implements OnInit {
       email: d.email || '',
       direccion: d.direccion || '',
       categoriaProveedor: d.categoriaProveedor || 'General',
+      esProveedorLocal: d.esProveedorLocal ?? false,
     });
     this.distribuidorModalOpen.set(true);
   }
@@ -628,6 +636,7 @@ export class Admin implements OnInit {
       email: f.email.trim() || undefined,
       direccion: f.direccion.trim() || undefined,
       categoriaProveedor: f.categoriaProveedor.trim() || undefined,
+      esProveedorLocal: f.esProveedorLocal,
     };
 
     const action$ = this.editDistribuidorId()
@@ -728,6 +737,36 @@ export class Admin implements OnInit {
     this.clienteService.deleteCliente(c.uuid).subscribe({
       next: () => this.loadClientes(),
       error: (e) => alert(e.error?.message || 'Error al eliminar cliente'),
+    });
+  }
+
+  // --- TURNOS (ODS 8: Trabajo Decente) ---
+  loadTurnos(): void {
+    this.turnoService.getAll(0, 100).subscribe({
+      next: (res) => this.turnos.set(res.content),
+      error: () => {},
+    });
+  }
+
+  iniciarTurnoEmpleado(u: Usuario): void {
+    if (!confirm(`¿Iniciar turno laboral para ${u.nombre} ${u.apellido}?`)) return;
+    this.turnoService.iniciarTurno({ idUsuario: u.uuid, observaciones: 'Fichaje desde panel administrativo' }).subscribe({
+      next: () => {
+        alert(`Turno iniciado para ${u.nombre} ${u.apellido}`);
+        this.loadTurnos();
+      },
+      error: (e) => alert(e.error?.message || 'Error al iniciar turno'),
+    });
+  }
+
+  cerrarTurnoEmpleado(u: Usuario): void {
+    if (!confirm(`¿Finalizar turno de ${u.nombre} ${u.apellido}?`)) return;
+    this.turnoService.cerrarTurno({ idUsuario: u.uuid, observaciones: 'Cierre registrado por administración' }).subscribe({
+      next: (t) => {
+        alert(`Turno cerrado para ${u.nombre}. Total registrado: ${t.totalHoras || 0} horas`);
+        this.loadTurnos();
+      },
+      error: (e) => alert(e.error?.message || 'Error al cerrar turno'),
     });
   }
 }

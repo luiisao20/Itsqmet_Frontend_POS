@@ -7,6 +7,7 @@ export interface Distribuidor {
   email?: string;
   direccion?: string;
   categoriaProveedor?: string;
+  esProveedorLocal?: boolean;
   createdAt?: string;
 }
 
@@ -18,4 +19,5 @@ export interface DistribuidorRequest {
   email?: string;
   direccion?: string;
   categoriaProveedor?: string;
+  esProveedorLocal?: boolean;
 }

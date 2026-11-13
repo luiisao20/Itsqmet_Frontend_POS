@@ -68,6 +68,13 @@
 
           @if (rol === 'ADMIN') {
             <a
+              routerLink="/reportes"
+              routerLinkActive="bg-emerald-50 text-emerald-800 font-semibold border-emerald-200"
+              class="px-3 py-1.5 rounded-lg text-xs text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50 transition-colors border border-transparent"
+            >
+              📊 Reportes ODS 8
+            </a>
+            <a
               routerLink="/admin"
               routerLinkActive="bg-emerald-50 text-emerald-800 font-semibold border-emerald-200"
               class="px-3 py-1.5 rounded-lg text-xs text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50 transition-colors border border-transparent"
@@ -143,6 +150,13 @@
                 }
 
                 @if (rol === 'ADMIN') {
+                  <a
+                    routerLink="/reportes"
+                    (click)="dropdownOpen.set(false)"
+                    class="block px-4 py-2 text-xs text-gray-700 hover:bg-emerald-50 hover:text-emerald-800 transition-colors"
+                  >
+                    📊 Reportes y ODS 8
+                  </a>
                   <a
                     routerLink="/admin"
                     (click)="dropdownOpen.set(false)"
@@ -229,6 +243,13 @@
       }
 
       @if (rol === 'ADMIN') {
+        <a
+          routerLink="/reportes"
+          (click)="mobileMenuOpen.set(false)"
+          class="block px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-emerald-50"
+        >
+          📊 Reportes ODS 8
+        </a>
         <a
           routerLink="/admin"
           (click)="mobileMenuOpen.set(false)"

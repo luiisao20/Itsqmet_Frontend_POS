@@ -7,6 +7,7 @@ import { Mesas } from './features/mesas/mesas';
 import { Cocina } from './features/cocina/cocina';
 import { Caja } from './features/caja/caja';
 import { Admin } from './features/admin/admin';
+import { Reportes } from './features/reportes/reportes';
 import { NotFound } from './features/not-found/not-found';
 import { guestGuard } from './guards/guest-guard';
 import { roleGuard } from './guards/role-guard';
@@ -38,6 +39,11 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: Admin,
+    canActivate: [roleGuard(['ADMIN'])],
+  },
+  {
+    path: 'reportes',
+    component: Reportes,
     canActivate: [roleGuard(['ADMIN'])],
   },
   { path: '**', component: NotFound },
