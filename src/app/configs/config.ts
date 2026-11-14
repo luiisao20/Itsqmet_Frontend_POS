@@ -1,6 +1,29 @@
+function resolveApiUrl(): string {
+  if (typeof window === 'undefined') return 'http://localhost:8080';
+  // Si estamos en desarrollo local con ng serve en el puerto 4200
+  if (window.location.port === '4200') {
+    return 'http://localhost:8080';
+  }
+  // En producción / Docker con el Gateway o Tailscale, peticiones relativas al dominio y puerto actual
+  return '';
+}
+
+function resolveWsUrl(): string {
+  if (typeof window === 'undefined') return 'ws://localhost:8080/ws-pos';
+  if (window.location.port === '4200') {
+    return 'ws://localhost:8080/ws-pos';
+  }
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}/ws-pos`;
+}
+
 export const APP_CONFIG = {
-  API_URL: 'http://localhost:8080',
-  WS_URL: 'ws://localhost:8080/ws-pos',
+  get API_URL(): string {
+    return resolveApiUrl();
+  },
+  get WS_URL(): string {
+    return resolveWsUrl();
+  },
   ENDPOINTS: {
     AUTH: '/auth',
     USUARIOS: '/usuarios',
