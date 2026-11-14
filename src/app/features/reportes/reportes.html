@@ -110,6 +110,39 @@
     </div>
   </div>
 
+  <!-- IMPACTO AMBIENTAL Y RESCATE DE ALIMENTOS (ODS 12: PRODUCCIÓN Y CONSUMO RESPONSABLES) -->
+  <div class="mb-8 p-6 bg-linear-to-r from-emerald-900 via-teal-900 to-emerald-950 rounded-3xl text-white shadow-lg relative overflow-hidden">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/30 border border-emerald-400/30 text-emerald-300 text-xs font-bold mb-2">
+          <span>🌱</span> ODS 12.3 · Desperdicio Cero de Alimentos
+        </div>
+        <h3 class="text-xl font-black">Impacto Ambiental por Paquetes Sorpresa Rescatados</h3>
+        <p class="text-xs text-emerald-200 mt-1 max-w-xl">
+          Conversión de excedentes preparados en paquetes económicos para comensales, minimizando mermas y evitando huella de carbono.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4 bg-white/10 p-4 rounded-2xl border border-white/10 backdrop-blur-xs text-center">
+        <div>
+          <span class="text-2xl font-black text-emerald-300 block">{{ totalPacksRescatados() }}</span>
+          <span class="text-[10px] text-emerald-100 font-semibold block uppercase">Packs Salva-Comida</span>
+          <span class="text-[9px] text-emerald-300/80">≈ {{ comidaSalvadaKg().toFixed(1) }} kg de comida</span>
+        </div>
+        <div>
+          <span class="text-2xl font-black text-teal-300 block">{{ co2EvitadoKg().toFixed(1) }} kg</span>
+          <span class="text-[10px] text-teal-100 font-semibold block uppercase">CO₂ Evitado</span>
+          <span class="text-[9px] text-teal-300/80">Huella mitigada</span>
+        </div>
+        <div>
+          <span class="text-2xl font-black text-amber-300 block">${{ dineroRecuperado().toFixed(2) }}</span>
+          <span class="text-[10px] text-amber-100 font-semibold block uppercase">Valor Rescatado</span>
+          <span class="text-[9px] text-amber-300/80">Ingresos recuperados</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
     <!-- TABLA 1: PLATOS MÁS VENDIDOS -->
     <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">

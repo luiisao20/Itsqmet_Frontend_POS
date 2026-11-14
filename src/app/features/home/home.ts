@@ -86,22 +86,34 @@ export class Home implements OnInit {
   }
 
   onAddToCart(plato: Plato): void {
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/login'], { queryParams: { returnUrl: '/cliente/pedidos' } });
-    } else if (this.authService.currentRol() === 'CLIENTE') {
-      this.router.navigate(['/cliente/pedidos']);
-    } else if (this.authService.currentRol() === 'MESERO' || this.authService.currentRol() === 'ADMIN') {
+    if (this.authService.currentRol() === 'MESERO' || this.authService.currentRol() === 'ADMIN') {
       this.router.navigate(['/mesas']);
+      return;
     }
+
+    // Guardar en el carrito de localStorage para continuar en el panel de pedidos
+    try {
+      const stored = localStorage.getItem('pos_cart_items');
+      const cart = stored ? JSON.parse(stored) : [];
+      const index = cart.findIndex((i: any) => i.plato?.id === plato.id);
+      if (index > -1) {
+        cart[index].cantidad += 1;
+      } else {
+        cart.push({ plato, cantidad: 1, notasPreparacion: '' });
+      }
+      localStorage.setItem('pos_cart_items', JSON.stringify(cart));
+    } catch (e) {
+      console.error('Error al guardar plato en carrito', e);
+    }
+
+    this.router.navigate(['/cliente/pedidos']);
   }
 
   goToOrder(): void {
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/login']);
-    } else if (this.authService.currentRol() === 'CLIENTE') {
-      this.router.navigate(['/cliente/pedidos']);
-    } else {
+    if (this.authService.currentRol() === 'MESERO' || this.authService.currentRol() === 'ADMIN') {
       this.router.navigate(['/mesas']);
+    } else {
+      this.router.navigate(['/cliente/pedidos']);
     }
   }
 }

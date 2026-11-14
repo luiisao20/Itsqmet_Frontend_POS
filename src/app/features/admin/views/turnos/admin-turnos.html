@@ -1,0 +1,99 @@
+<div class="space-y-6">
+  <!-- Panel de Control de Fichaje Rápido de Personal -->
+  <div class="bg-white rounded-3xl border border-emerald-100 p-6 shadow-xs">
+    <div class="mb-4">
+      <h3 class="font-bold text-gray-900 text-sm">Control de Jornadas y Fichaje de Personal (ODS 8)</h3>
+      <p class="text-xs text-gray-500">
+        Registra horas de trabajo justas para meseros y cocina. Garantiza el registro exacto de horas para remuneración y nómina transparente.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      @for (u of usuarios(); track u.uuid) {
+        <div class="border border-gray-100 rounded-2xl p-3.5 flex items-center justify-between gap-3 bg-gray-50/50">
+          <div>
+            <span class="font-bold text-xs text-gray-900 block">{{ u.nombre }} {{ u.apellido }}</span>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+              {{ u.rol }}
+            </span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              (click)="iniciarTurnoEmpleado(u)"
+              class="px-2.5 py-1 text-[11px] font-bold bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 cursor-pointer shadow-xs transition-colors"
+            >
+              ▶ Iniciar
+            </button>
+            <button
+              type="button"
+              (click)="cerrarTurnoEmpleado(u)"
+              class="px-2.5 py-1 text-[11px] font-bold bg-red-50 text-red-600 hover:bg-red-100 rounded-xl cursor-pointer transition-colors"
+            >
+              ⏹ Cerrar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Tabla Historial de Turnos -->
+  <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-bold text-gray-800 text-sm">Historial de Turnos Registrados</h3>
+      <span class="text-xs text-gray-400">{{ turnos().length }} registros</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+          <tr>
+            <th class="px-6 py-3">Empleado</th>
+            <th class="px-6 py-3">Rol</th>
+            <th class="px-6 py-3">Inicio de Turno</th>
+            <th class="px-6 py-3">Fin de Turno</th>
+            <th class="px-6 py-3">Total Horas</th>
+            <th class="px-6 py-3">Observaciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 text-gray-700">
+          @for (t of turnos(); track t.id) {
+            <tr class="hover:bg-emerald-50/20 transition-colors">
+              <td class="px-6 py-3.5 font-bold text-gray-900">{{ t.nombreUsuario }}</td>
+              <td class="px-6 py-3.5">
+                <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px] font-semibold">
+                  {{ t.rolUsuario || 'PERSONAL' }}
+                </span>
+              </td>
+              <td class="px-6 py-3.5 text-gray-600 font-mono text-[11px]">
+                {{ t.fechaInicio | date:'medium' }}
+              </td>
+              <td class="px-6 py-3.5 text-gray-600 font-mono text-[11px]">
+                @if (t.fechaFin) {
+                  {{ t.fechaFin | date:'medium' }}
+                } @else {
+                  <span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] animate-pulse">
+                    ● EN CURSO
+                  </span>
+                }
+              </td>
+              <td class="px-6 py-3.5 font-bold text-emerald-900 text-sm">
+                @if (t.totalHoras) {
+                  {{ t.totalHoras }} hrs
+                } @else {
+                  <span class="text-gray-400 font-normal text-xs">-</span>
+                }
+              </td>
+              <td class="px-6 py-3.5 text-gray-500 text-[11px]">{{ t.observaciones || '-' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="p-8 text-center text-gray-400">No hay turnos registrados en el sistema</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

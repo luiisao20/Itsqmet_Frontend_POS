@@ -16,10 +16,12 @@ export const APP_CONFIG = {
     COMPRAS: '/compras',
     TURNOS: '/turnos',
     REPORTES: '/reportes',
+    PAQUETES_SORPRESA: '/paquetes-sorpresa',
   },
   TOPICS: {
     PEDIDOS: '/topic/pedidos',
     COCINA: '/topic/cocina',
     ADMIN: '/topic/admin',
+    PAQUETES_SORPRESA: '/topic/paquetes-sorpresa',
   },
 };

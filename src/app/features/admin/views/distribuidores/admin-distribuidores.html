@@ -1,0 +1,174 @@
+<div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h3 class="font-bold text-gray-800 text-sm">Directorio de Distribuidores y Proveedores</h3>
+      <span class="text-xs text-gray-400">{{ distribuidores().length }} proveedores</span>
+    </div>
+    <app-button variant="primary" size="md" (btnClick)="openCrearDistribuidor()">+ Nuevo Distribuidor</app-button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs">
+      <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+        <tr>
+          <th class="px-6 py-3">Razón Social</th>
+          <th class="px-6 py-3">RUC</th>
+          <th class="px-6 py-3">Contacto</th>
+          <th class="px-6 py-3">Teléfono / Email</th>
+          <th class="px-6 py-3">Categoría</th>
+          <th class="px-6 py-3">Origen ODS 8</th>
+          <th class="px-6 py-3 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 text-gray-700">
+        @for (d of distribuidores(); track d.id) {
+          <tr class="hover:bg-emerald-50/20 transition-colors">
+            <td class="px-6 py-3.5 font-bold text-gray-900">{{ d.razonSocial }}</td>
+            <td class="px-6 py-3.5 font-mono text-gray-500">{{ d.ruc }}</td>
+            <td class="px-6 py-3.5 text-gray-700">{{ d.nombreContacto || '-' }}</td>
+            <td class="px-6 py-3.5">
+              <span class="block text-gray-800">{{ d.telefono || '-' }}</span>
+              <span class="text-[11px] text-gray-400">{{ d.email || '-' }}</span>
+            </td>
+            <td class="px-6 py-3.5">
+              <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
+                {{ d.categoriaProveedor || 'General' }}
+              </span>
+            </td>
+            <td class="px-6 py-3.5">
+              @if (d.esProveedorLocal) {
+                <app-badge text="Local (ODS 8)" variant="success"></app-badge>
+              } @else {
+                <app-badge text="Nacional" variant="neutral"></app-badge>
+              }
+            </td>
+            <td class="px-6 py-3.5 text-right space-x-1">
+              <button
+                (click)="openEditarDistribuidor(d)"
+                class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+              >
+                Editar
+              </button>
+              <button
+                (click)="deleteDistribuidor(d)"
+                class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="p-8 text-center text-gray-400">No hay distribuidores registrados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL DISTRIBUIDOR -->
+<app-modal
+  [isOpen]="distribuidorModalOpen()"
+  [title]="editDistribuidorId() ? 'Editar Distribuidor' : 'Nuevo Distribuidor'"
+  (closed)="distribuidorModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitDistribuidor()" class="space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Razón Social *</label>
+      <input
+        type="text"
+        [(ngModel)]="distribuidorForm().razonSocial"
+        name="razonDist"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Pronaca Cía. Ltda."
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">RUC *</label>
+        <input
+          type="text"
+          [(ngModel)]="distribuidorForm().ruc"
+          name="rucDist"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Categoría</label>
+        <input
+          type="text"
+          [(ngModel)]="distribuidorForm().categoriaProveedor"
+          name="catDist"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+          placeholder="Ej: Carnes, Lácteos, Abarrotes"
+        />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Contacto</label>
+        <input
+          type="text"
+          [(ngModel)]="distribuidorForm().nombreContacto"
+          name="contDist"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Teléfono</label>
+        <input
+          type="text"
+          [(ngModel)]="distribuidorForm().telefono"
+          name="telDist"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Email</label>
+      <input
+        type="email"
+        [(ngModel)]="distribuidorForm().email"
+        name="emailDist"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+      />
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Dirección</label>
+      <input
+        type="text"
+        [(ngModel)]="distribuidorForm().direccion"
+        name="dirDist"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+      />
+    </div>
+
+    <div class="pt-2">
+      <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+        <input
+          type="checkbox"
+          [(ngModel)]="distribuidorForm().esProveedorLocal"
+          name="esLocalDist"
+          class="rounded text-emerald-600 focus:ring-emerald-500"
+        />
+        Proveedor Local (Comunitario / Regional - ODS 8)
+      </label>
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="distribuidorModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Distribuidor' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>

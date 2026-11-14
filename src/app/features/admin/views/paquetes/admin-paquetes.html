@@ -1,0 +1,273 @@
+<div class="space-y-6">
+  <!-- Barra superior con filtros y botón de creación -->
+  <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-xs flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-2">
+        <label class="text-xs font-bold text-gray-600">Fecha:</label>
+        <input
+          type="date"
+          [ngModel]="filtroFechaPaquetes()"
+          (ngModelChange)="filtroFechaPaquetes.set($event); loadPaquetes()"
+          class="px-3 py-1.5 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
+        />
+      </div>
+      <button
+        type="button"
+        (click)="loadPaquetes()"
+        class="px-3 py-1.5 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors cursor-pointer"
+      >
+        🔄 Actualizar
+      </button>
+    </div>
+
+    <button
+      type="button"
+      (click)="openNuevoPaqueteModal()"
+      class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+    >
+      <span>🌱</span>
+      <span>+ Publicar Paquete Sorpresa</span>
+    </button>
+  </div>
+
+  <!-- Tabla de Gestión de Paquetes -->
+  <div class="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-emerald-50/20">
+      <div>
+        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+          <span>🌱</span> Paquetes Sorpresa Publicados (ODS 12)
+        </h3>
+        <p class="text-xs text-gray-400">Control de stock excedente, horarios de rescate y reservas en tiempo real</p>
+      </div>
+      <span class="text-xs text-emerald-800 font-bold bg-emerald-100 px-3 py-1 rounded-full">
+        {{ paquetes().length }} paquetes hoy
+      </span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-gray-50 border-b border-gray-100 text-gray-500 uppercase text-[10px] font-bold">
+          <tr>
+            <th class="px-6 py-3">Título & Descripción</th>
+            <th class="px-6 py-3">Horario Visibilidad</th>
+            <th class="px-6 py-3">Hora Límite Retiro</th>
+            <th class="px-6 py-3">Precio Estimado</th>
+            <th class="px-6 py-3">Precio Rescate</th>
+            <th class="px-6 py-3">Stock / Vendidos</th>
+            <th class="px-6 py-3">Estado</th>
+            <th class="px-6 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 text-gray-700">
+          @for (p of paquetes(); track p.id) {
+            <tr class="hover:bg-emerald-50/20 transition-colors">
+              <td class="px-6 py-3.5">
+                <span class="font-bold text-gray-900 block">{{ p.titulo }}</span>
+                <span class="text-[11px] text-gray-400 line-clamp-1">{{ p.descripcion || 'Sin descripción adicional' }}</span>
+              </td>
+              <td class="px-6 py-3.5 font-medium">
+                <span class="px-2 py-0.5 rounded-lg bg-gray-100 font-mono text-[11px] font-bold">
+                  {{ p.horaInicioVisibilidad }}
+                </span>
+              </td>
+              <td class="px-6 py-3.5 font-medium">
+                <span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 font-mono text-[11px] font-bold">
+                  {{ p.horaFinRecogida }}
+                </span>
+              </td>
+              <td class="px-6 py-3.5 text-gray-400 line-through">
+                ${{ p.precioEstimadoOriginal.toFixed(2) }}
+              </td>
+              <td class="px-6 py-3.5 font-bold text-emerald-700 text-sm">
+                ${{ p.precioRescate.toFixed(2) }}
+                <span class="text-[10px] text-red-600 font-bold ml-1">(-{{ p.porcentajeDescuento }}%)</span>
+              </td>
+              <td class="px-6 py-3.5">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-gray-800">{{ p.cantidadDisponible }}</span>
+                  <span class="text-gray-400">/ {{ p.cantidadTotal }}</span>
+                  <span class="text-[10px] bg-emerald-50 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded-full">
+                    {{ p.unidadesVendidas }} vendidos
+                  </span>
+                </div>
+              </td>
+              <td class="px-6 py-3.5">
+                <app-badge
+                  [text]="p.estado"
+                  [variant]="p.estado === 'ACTIVO' ? 'success' : (p.estado === 'PROGRAMADO' ? 'info' : (p.estado === 'AGOTADO' ? 'warning' : 'neutral'))"
+                />
+              </td>
+              <td class="px-6 py-3.5 text-right space-x-1.5">
+                <button
+                  type="button"
+                  (click)="openEditPaqueteModal(p)"
+                  class="px-2.5 py-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors cursor-pointer"
+                >
+                  Editar
+                </button>
+                @if (p.estado !== 'FINALIZADO') {
+                  <button
+                    type="button"
+                    (click)="cambiarEstadoPaquete(p, 'FINALIZADO')"
+                    class="px-2.5 py-1 text-[11px] font-bold bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Finalizar
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    (click)="cambiarEstadoPaquete(p, 'ACTIVO')"
+                    class="px-2.5 py-1 text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Reactivar
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="p-8 text-center text-gray-400">
+                No se han registrado paquetes sorpresa para esta fecha.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAQUETE SORPRESA (ODS 12) -->
+<app-modal
+  [isOpen]="paqueteModalOpen()"
+  [title]="editPaqueteId() ? 'Editar Paquete Sorpresa' : 'Publicar Nuevo Paquete Sorpresa 🌱'"
+  (closed)="paqueteModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitPaquete()" class="space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Título del Paquete *</label>
+      <input
+        type="text"
+        [(ngModel)]="paqueteForm().titulo"
+        name="tituloPack"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Pack Sorpresa Almuerzo Ejecutivo (ODS 12)"
+      />
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Descripción / Qué podría contener</label>
+      <textarea
+        [(ngModel)]="paqueteForm().descripcion"
+        name="descPack"
+        rows="2"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Seco de carne o pollo con menestra y ensalada fresca preparada hoy"
+      ></textarea>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Precio Original Estimado ($) *</label>
+        <input
+          type="number"
+          step="0.01"
+          min="0.01"
+          [(ngModel)]="paqueteForm().precioEstimadoOriginal"
+          name="precioOriginal"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-emerald-800 mb-1">Precio de Rescate ($) *</label>
+        <input
+          type="number"
+          step="0.01"
+          min="0.01"
+          [(ngModel)]="paqueteForm().precioRescate"
+          name="precioRescate"
+          required
+          class="w-full px-3 py-2 text-xs border border-emerald-300 rounded-xl font-bold text-emerald-900 outline-none"
+        />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Cantidad Total *</label>
+        <input
+          type="number"
+          min="1"
+          [(ngModel)]="paqueteForm().cantidadTotal"
+          name="cantidadTotal"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none text-center font-bold"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Hora Inicio Apertura *</label>
+        <input
+          type="time"
+          step="1"
+          [(ngModel)]="paqueteForm().horaInicioVisibilidad"
+          name="horaInicio"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Hora Límite Retiro *</label>
+        <input
+          type="time"
+          step="1"
+          [(ngModel)]="paqueteForm().horaFinRecogida"
+          name="horaFin"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none"
+        />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Fecha Disponible *</label>
+        <input
+          type="date"
+          [(ngModel)]="paqueteForm().fechaDisponible"
+          name="fechaDisponible"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">URL Imagen (opcional)</label>
+        <input
+          type="text"
+          [(ngModel)]="paqueteForm().urlImagen"
+          name="urlImagen"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none"
+          placeholder="https://images.unsplash.com/..."
+        />
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+      <button
+        type="button"
+        (click)="paqueteModalOpen.set(false)"
+        class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="loadingSubmit()"
+        class="px-4 py-2 text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl shadow-xs cursor-pointer"
+      >
+        {{ editPaqueteId() ? 'Guardar Cambios' : 'Publicar Paquete' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

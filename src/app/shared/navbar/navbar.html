@@ -28,13 +28,13 @@
             Menú Digital
           </a>
 
-          @if (rol === 'CLIENTE') {
+          @if (!isAuthenticated || rol === 'CLIENTE') {
             <a
               routerLink="/cliente/pedidos"
               routerLinkActive="bg-emerald-50 text-emerald-800 font-semibold border-emerald-200"
               class="px-3 py-1.5 rounded-lg text-xs text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50 transition-colors border border-transparent"
             >
-              🛍️ Para Llevar / Mis Pedidos
+              🛍️ Para Llevar / Packs Sorpresa
             </a>
           }
 
@@ -205,13 +205,13 @@
         Menú Digital
       </a>
 
-      @if (rol === 'CLIENTE') {
+      @if (!isAuthenticated || rol === 'CLIENTE') {
         <a
           routerLink="/cliente/pedidos"
           (click)="mobileMenuOpen.set(false)"
           class="block px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-emerald-50"
         >
-          🛍️ Para Llevar / Mis Pedidos
+          🛍️ Para Llevar / Packs Sorpresa
         </a>
       }
 

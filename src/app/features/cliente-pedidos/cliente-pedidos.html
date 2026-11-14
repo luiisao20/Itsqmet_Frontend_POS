@@ -21,6 +21,20 @@
 
       <button
         type="button"
+        (click)="activeTab.set('paquetes'); loadPaquetes()"
+        class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+        [ngClass]="activeTab() === 'paquetes' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50'"
+      >
+        <span>🌱 Salva Comida (ODS 12)</span>
+        @if (paquetes().length > 0) {
+          <span class="px-1.5 py-0.5 rounded-full text-[10px] flex items-center justify-center font-black" [ngClass]="activeTab() === 'paquetes' ? 'bg-white text-emerald-700' : 'bg-emerald-100 text-emerald-800'">
+            {{ paquetes().length }}
+          </span>
+        }
+      </button>
+
+      <button
+        type="button"
         (click)="activeTab.set('historial'); loadMisPedidos()"
         class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
         [ngClass]="activeTab() === 'historial' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50'"
@@ -53,6 +67,26 @@
 
   <!-- TAB 1: CREAR PEDIDO PARA LLEVAR -->
   @if (activeTab() === 'nuevo') {
+    <!-- Banner de Invitación ODS 12 -->
+    <div class="mb-6 p-4 bg-linear-to-r from-emerald-600 to-teal-700 rounded-2xl text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl p-2 bg-white/20 rounded-xl">🌱</span>
+        <div>
+          <h3 class="font-extrabold text-sm sm:text-base">¡Iniciativa Cero Desperdicio (ODS 12)!</h3>
+          <p class="text-xs text-emerald-100 mt-0.5">
+            Rescata platillos preparados frescos del día en nuestros Paquetes Sorpresa con hasta un 65% de descuento.
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="activeTab.set('paquetes'); loadPaquetes()"
+        class="px-4 py-2 bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-black rounded-xl shadow-xs transition-transform active:scale-95 whitespace-nowrap cursor-pointer self-start sm:self-auto"
+      >
+        🎁 Ver Packs Sorpresa
+      </button>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Columna 1 y 2: Catálogo del Menú -->
       <div class="lg:col-span-2 flex flex-col gap-6">
@@ -112,7 +146,22 @@
   <!-- TAB 2: HISTORIAL DE PEDIDOS DEL CLIENTE -->
   @if (activeTab() === 'historial') {
     <div class="space-y-4">
-      @if (loadingList()) {
+      @if (!authService.isAuthenticated()) {
+        <div class="bg-white rounded-3xl border border-emerald-100 p-10 text-center max-w-md mx-auto shadow-xs">
+          <div class="text-4xl mb-3">🔒</div>
+          <h3 class="text-base font-bold text-gray-800">Inicia sesión para ver tus pedidos</h3>
+          <p class="text-xs text-gray-500 mt-1 mb-4">
+            Podrás consultar el estado de preparación de tus comandas y tus pedidos para llevar en tiempo real.
+          </p>
+          <button
+            type="button"
+            (click)="openAuthModal('Inicia sesión o crea tu cuenta para ver tu historial de pedidos')"
+            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+          >
+            🔑 Iniciar Sesión / Registrarme
+          </button>
+        </div>
+      } @else if (loadingList()) {
         <div class="p-12 text-center text-gray-400">Cargando tus pedidos...</div>
       } @else if (misPedidos().length === 0) {
         <div class="bg-white rounded-3xl border border-emerald-100 p-12 text-center max-w-md mx-auto shadow-xs">
@@ -171,6 +220,202 @@
     </div>
   }
 
+  <!-- TAB 2: PAQUETES SORPRESA - RESCATE DE COMIDA (ODS 12) -->
+  @if (activeTab() === 'paquetes') {
+    <div class="space-y-6">
+      <!-- Banner informativo ODS 12 -->
+      <div class="p-6 bg-linear-to-r from-emerald-800 via-teal-800 to-emerald-900 rounded-3xl text-white shadow-lg relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs font-bold mb-3">
+            <span>🌱</span> ODS 12.3 · Meta Cero Desperdicio de Alimentos
+          </div>
+          <h2 class="text-2xl font-black mb-2">Rescata Comida Deliciosa a Precios Increíbles</h2>
+          <p class="text-xs text-emerald-100 leading-relaxed">
+            Platillos frescos preparados del día con calidad garantizada. Para evitar que terminen descartados, el chef los empaqueta como sorpresa a un precio reducido. ¡Cada pack que rescatas evita aprox. 2.5 kg de emisiones de CO₂!
+          </p>
+        </div>
+      </div>
+
+      <!-- Estado de carga -->
+      @if (loadingPaquetes()) {
+        <div class="text-center py-12 text-gray-500 text-xs font-bold flex items-center justify-center gap-2">
+          <span class="animate-spin text-lg">⏳</span> Cargando paquetes sorpresa disponibles...
+        </div>
+      } @else if (paquetes().length === 0) {
+        <div class="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-xs">
+          <span class="text-5xl mb-3 block">🍃</span>
+          <h3 class="text-base font-bold text-gray-800 mb-1">¡No hay excedentes de comida hoy!</h3>
+          <p class="text-xs text-gray-500 max-w-md mx-auto">
+            La cocina ha gestionado eficientemente todos sus platillos. Regresa más tarde antes de los cierres de turno para ver nuevos packs.
+          </p>
+        </div>
+      } @else {
+        <!-- Grid de Paquetes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (pack of paquetes(); track pack.id) {
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-all group">
+              <!-- Header / Imagen -->
+              <div class="relative h-44 bg-gray-100 overflow-hidden">
+                <img
+                  [src]="pack.urlImagen || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'"
+                  [alt]="pack.titulo"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <!-- Badge de Descuento -->
+                <div class="absolute top-3 left-3 bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded-xl shadow-md">
+                  -{{ pack.porcentajeDescuento }}%
+                </div>
+                <!-- Badge de Estado o Temporizador -->
+                <div class="absolute top-3 right-3">
+                  @if (pack.disponibleAhora) {
+                    <span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-emerald-600 text-white shadow-md flex items-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-emerald-200 animate-pulse"></span>
+                      ¡Disponible Ahora!
+                    </span>
+                  } @else if (pack.segundosParaApertura > 0) {
+                    <span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-500 text-white shadow-md flex items-center gap-1">
+                      <span>⏰</span> Se desbloquea en {{ temporizadores()[pack.id] || 'Pronto' }}
+                    </span>
+                  } @else if (pack.cantidadDisponible === 0) {
+                    <span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-gray-700 text-white shadow-md">
+                      Agotado
+                    </span>
+                  } @else {
+                    <span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-gray-600 text-white shadow-md">
+                      Horario Finalizado
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <!-- Contenido -->
+              <div class="p-5 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 class="font-bold text-gray-900 text-base mb-1.5">{{ pack.titulo }}</h3>
+                  <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-4">
+                    {{ pack.descripcion || 'Selección sorpresa de platos recién preparados por el chef listos para llevar.' }}
+                  </p>
+
+                  <div class="space-y-2 py-3 border-y border-gray-100 text-xs">
+                    <div class="flex items-center justify-between text-gray-600">
+                      <span class="flex items-center gap-1.5">
+                        <span>🕒</span> Horario de Retiro:
+                      </span>
+                      <span class="font-bold text-gray-800">
+                        Hasta las {{ pack.horaFinRecogida }}
+                      </span>
+                    </div>
+                    <div class="flex items-center justify-between text-gray-600">
+                      <span class="flex items-center gap-1.5">
+                        <span>📦</span> Disponibilidad:
+                      </span>
+                      <span class="font-bold" [ngClass]="pack.cantidadDisponible > 0 ? 'text-emerald-700' : 'text-gray-400'">
+                        {{ pack.cantidadDisponible }} de {{ pack.cantidadTotal }} disponibles
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Footer Precio & Acción -->
+                <div class="mt-4 pt-2 flex items-center justify-between">
+                  <div>
+                    <span class="text-[10px] text-gray-400 line-through block font-medium">
+                      Estimado: ${{ pack.precioEstimadoOriginal.toFixed(2) }}
+                    </span>
+                    <span class="text-lg font-black text-emerald-800">
+                      ${{ pack.precioRescate.toFixed(2) }}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="openRescateModal(pack)"
+                    [disabled]="!pack.disponibleAhora"
+                    class="px-4 py-2.5 rounded-2xl font-black text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    [ngClass]="pack.disponibleAhora ? 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
+                  >
+                    <span>🎁</span>
+                    <span>{{ pack.disponibleAhora ? 'Rescatar Pack' : 'Bloqueado' }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- MODAL DE RESCATE -->
+  <app-modal
+    [isOpen]="rescateModalOpen()"
+    title="Rescatar Paquete Sorpresa 🌱"
+    (closed)="closeRescateModal()"
+  >
+    @if (selectedPaquete()) {
+      <div class="space-y-4">
+        <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-950">
+          <h4 class="font-bold text-sm">{{ selectedPaquete()!.titulo }}</h4>
+          <p class="text-xs text-emerald-800 mt-1">{{ selectedPaquete()!.descripcion }}</p>
+          <div class="mt-2 text-xs flex justify-between font-bold">
+            <span>Hora máxima de recogida:</span>
+            <span class="text-emerald-900">{{ selectedPaquete()!.horaFinRecogida }}</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Cantidad a rescatar</label>
+            <input
+              type="number"
+              min="1"
+              [max]="selectedPaquete()!.cantidadDisponible"
+              [(ngModel)]="rescateCantidad"
+              class="w-full px-3 py-2 border border-gray-200 rounded-xl font-bold text-center"
+            />
+          </div>
+          <div class="flex flex-col justify-end">
+            <span class="text-gray-500 font-medium">Total a pagar:</span>
+            <span class="text-lg font-black text-emerald-800">
+              ${{ (selectedPaquete()!.precioRescate * rescateCantidad()).toFixed(2) }}
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Notas o alergias para el chef (opcional)</label>
+          <input
+            type="text"
+            [(ngModel)]="rescateObservaciones"
+            placeholder="Ej: sin cubiertos descartables, alérgico al marisco"
+            class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+          />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+          <button
+            type="button"
+            (click)="closeRescateModal()"
+            class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmarRescate()"
+            [disabled]="loadingRescate()"
+            class="px-4 py-2 text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl shadow-xs flex items-center gap-2 cursor-pointer"
+          >
+            @if (loadingRescate()) {
+              <span class="animate-spin">⏳</span>
+            }
+            <span>Confirmar Rescate</span>
+          </button>
+        </div>
+      </div>
+    }
+  </app-modal>
+
   <!-- TAB 3: MIS FACTURAS -->
   @if (activeTab() === 'facturas') {
     <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
@@ -179,7 +424,22 @@
         <p class="text-xs text-gray-400">Comprobantes autorizados emitidos a tu nombre o cédula</p>
       </div>
 
-      @if (misFacturas().length === 0) {
+      @if (!authService.isAuthenticated()) {
+        <div class="p-10 text-center max-w-md mx-auto">
+          <div class="text-4xl mb-3">🧾</div>
+          <h3 class="text-base font-bold text-gray-800">Facturas vinculadas a tu cuenta</h3>
+          <p class="text-xs text-gray-500 mt-1 mb-4">
+            Inicia sesión con tu cédula o correo para consultar tus comprobantes electrónicos y descargarlos.
+          </p>
+          <button
+            type="button"
+            (click)="openAuthModal('Inicia sesión para consultar tus facturas electrónicas autorizadas')"
+            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+          >
+            🔑 Iniciar Sesión / Registrarme
+          </button>
+        </div>
+      } @else if (misFacturas().length === 0) {
         <div class="p-12 text-center text-gray-400 text-xs">
           Aún no tienes facturas emitidas. Las facturas se generan automáticamente al completar y pagar tus pedidos.
         </div>
@@ -221,4 +481,207 @@
       }
     </div>
   }
+
+  <!-- MODAL DE IDENTIFICACIÓN / REGISTRO AL ENVIAR ORDEN -->
+  <app-modal
+    [isOpen]="authModalOpen()"
+    [title]="authTab() === 'login' ? 'Iniciar Sesión como Cliente' : 'Crear Cuenta de Cliente'"
+    (closed)="closeAuthModal()"
+  >
+    <div class="space-y-4">
+      <!-- Mensaje informativo de por qué se requiere auth -->
+      <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
+        <span class="text-base">🛍️</span>
+        <span>{{ authModalMessage() }}</span>
+      </div>
+
+      <!-- Pestañas de Login vs Registro -->
+      <div class="flex gap-1 p-1 bg-gray-100 rounded-xl">
+        <button
+          type="button"
+          (click)="authTab.set('login'); authError.set(null)"
+          class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer"
+          [ngClass]="authTab() === 'login' ? 'bg-white text-emerald-800 shadow-xs' : 'text-gray-500 hover:text-gray-800'"
+        >
+          🔑 Ya tengo cuenta (Ingresar)
+        </button>
+        <button
+          type="button"
+          (click)="authTab.set('register'); authError.set(null)"
+          class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer"
+          [ngClass]="authTab() === 'register' ? 'bg-white text-emerald-800 shadow-xs' : 'text-gray-500 hover:text-gray-800'"
+        >
+          ✨ Soy nuevo (Registrarme)
+        </button>
+      </div>
+
+      @if (authError()) {
+        <div class="p-2.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-semibold flex items-center gap-2">
+          <span>⚠️</span>
+          <span>{{ authError() }}</span>
+        </div>
+      }
+
+      <!-- FORM LOGIN -->
+      @if (authTab() === 'login') {
+        <form (ngSubmit)="onAuthLogin()" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Correo Electrónico o Cédula *</label>
+            <input
+              type="text"
+              [(ngModel)]="authLoginInput"
+              name="loginUser"
+              required
+              placeholder="ej: juan@correo.com o 1718293041"
+              class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Contraseña *</label>
+            <input
+              type="password"
+              [(ngModel)]="authPasswordInput"
+              name="passUser"
+              required
+              placeholder="••••••••"
+              class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+
+          <div class="pt-2 flex justify-end gap-2 border-t border-gray-100">
+            <button
+              type="button"
+              (click)="closeAuthModal()"
+              class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="authLoading()"
+              class="px-4 py-2 text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl shadow-xs flex items-center gap-2 cursor-pointer"
+            >
+              @if (authLoading()) {
+                <span class="animate-spin">⏳</span>
+              }
+              <span>Iniciar Sesión & Completar Pedido</span>
+            </button>
+          </div>
+        </form>
+      }
+
+      <!-- FORM REGISTRO -->
+      @if (authTab() === 'register') {
+        <form (ngSubmit)="onAuthRegister()" class="space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Tipo Identificación *</label>
+              <select
+                [(ngModel)]="regTipoId"
+                name="tipoId"
+                class="w-full px-2.5 py-2 text-xs border border-gray-200 rounded-xl outline-none bg-white"
+              >
+                <option value="CEDULA">Cédula</option>
+                <option value="RUC">RUC</option>
+                <option value="PASAPORTE">Pasaporte</option>
+                <option value="CONSUMIDOR_FINAL">Consumidor Final</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Número Identificación *</label>
+              <input
+                type="text"
+                [(ngModel)]="regIdentificacion"
+                name="identificacion"
+                required
+                placeholder="1712345678"
+                class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-gray-700 mb-1">Nombre Completo o Razón Social *</label>
+            <input
+              type="text"
+              [(ngModel)]="regRazonSocial"
+              name="razonSocial"
+              required
+              placeholder="Ej: Juan Pérez"
+              class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Correo Electrónico *</label>
+              <input
+                type="email"
+                [(ngModel)]="regEmail"
+                name="regEmail"
+                required
+                placeholder="juan@correo.com"
+                class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Teléfono</label>
+              <input
+                type="tel"
+                [(ngModel)]="regTelefono"
+                name="telefono"
+                placeholder="0991234567"
+                class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-gray-700 mb-1">Dirección (opcional)</label>
+            <input
+              type="text"
+              [(ngModel)]="regDireccion"
+              name="direccion"
+              placeholder="Ej: Av. Amazonas y República"
+              class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-gray-700 mb-1">Contraseña *</label>
+            <input
+              type="password"
+              [(ngModel)]="regPassword"
+              name="regPassword"
+              required
+              minlength="6"
+              placeholder="Mínimo 6 caracteres"
+              class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+
+          <div class="pt-2 flex justify-end gap-2 border-t border-gray-100">
+            <button
+              type="button"
+              (click)="closeAuthModal()"
+              class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="authLoading()"
+              class="px-4 py-2 text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl shadow-xs flex items-center gap-2 cursor-pointer"
+            >
+              @if (authLoading()) {
+                <span class="animate-spin">⏳</span>
+              }
+              <span>Registrarse & Confirmar Pedido</span>
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </app-modal>
 </div>

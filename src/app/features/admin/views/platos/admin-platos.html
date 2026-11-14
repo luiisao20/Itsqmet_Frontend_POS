@@ -1,0 +1,183 @@
+<div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h3 class="font-bold text-gray-800 text-sm">Catálogo de Platos del Menú</h3>
+      <span class="text-xs text-gray-400">{{ platos().length }} registrados</span>
+    </div>
+    <app-button variant="primary" size="md" (btnClick)="openCrearPlato()">+ Nuevo Plato</app-button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs">
+      <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+        <tr>
+          <th class="px-6 py-3">Plato</th>
+          <th class="px-6 py-3">Categoría</th>
+          <th class="px-6 py-3">Precio</th>
+          <th class="px-6 py-3">IVA</th>
+          <th class="px-6 py-3">Estado</th>
+          <th class="px-6 py-3 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 text-gray-700">
+        @for (p of platos(); track p.id) {
+          <tr class="hover:bg-emerald-50/20 transition-colors">
+            <td class="px-6 py-3.5">
+              <div class="flex items-center gap-3">
+                @if (p.urlImagen) {
+                  <img [src]="p.urlImagen" class="w-9 h-9 rounded-lg object-cover" />
+                }
+                <div>
+                  <span class="font-bold text-gray-900 block">{{ p.nombre }}</span>
+                  <span class="text-[11px] text-gray-400 line-clamp-1">{{ p.descripcion || 'Sin descripción' }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-3.5">
+              <span class="font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
+                {{ p.nombreCategoria || 'General' }}
+              </span>
+            </td>
+            <td class="px-6 py-3.5 font-bold text-emerald-800 text-sm">
+              ${{ p.precioUnitario.toFixed(2) }}
+            </td>
+            <td class="px-6 py-3.5">
+              <span class="text-[11px] font-semibold" [ngClass]="p.aplicaIva ? 'text-emerald-700' : 'text-gray-400'">
+                {{ p.aplicaIva ? '15%' : '0%' }}
+              </span>
+            </td>
+            <td class="px-6 py-3.5">
+              <button
+                (click)="toggleDisponibilidad(p)"
+                class="cursor-pointer"
+                title="Clic para cambiar disponibilidad"
+              >
+                <app-badge
+                  [text]="p.disponible ? 'Disponible' : 'Agotado'"
+                  [variant]="p.disponible ? 'success' : 'danger'"
+                ></app-badge>
+              </button>
+            </td>
+            <td class="px-6 py-3.5 text-right space-x-1">
+              <button
+                (click)="openEditarPlato(p)"
+                class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+              >
+                Editar
+              </button>
+              <button
+                (click)="deletePlato(p)"
+                class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 cursor-pointer"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="p-8 text-center text-gray-400">No hay platos registrados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL PLATO -->
+<app-modal
+  [isOpen]="platoModalOpen()"
+  [title]="editPlatoId() ? 'Editar Plato' : 'Nuevo Plato'"
+  (closed)="platoModalOpen.set(false)"
+>
+  <form (ngSubmit)="onSubmitPlato()" class="space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Nombre del Plato *</label>
+      <input
+        type="text"
+        [(ngModel)]="platoForm().nombre"
+        name="nombrePlato"
+        required
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ej: Seco de Chivo"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Categoría *</label>
+        <select
+          [(ngModel)]="platoForm().idCategoria"
+          name="catPlato"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none bg-white"
+        >
+          @for (c of categorias(); track c.id) {
+            <option [value]="c.id">{{ c.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Precio ($) *</label>
+        <input
+          type="number"
+          step="0.01"
+          [(ngModel)]="platoForm().precioUnitario"
+          name="precioPlato"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
+      <textarea
+        [(ngModel)]="platoForm().descripcion"
+        name="descPlato"
+        rows="2"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="Ingredientes principales, guarniciones..."
+      ></textarea>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-700 mb-1">URL Imagen</label>
+      <input
+        type="url"
+        [(ngModel)]="platoForm().urlImagen"
+        name="imgPlato"
+        class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        placeholder="https://..."
+      />
+    </div>
+
+    <div class="flex items-center gap-6 pt-2">
+      <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+        <input
+          type="checkbox"
+          [(ngModel)]="platoForm().aplicaIva"
+          name="aplicaIvaPlato"
+          class="rounded text-emerald-600 focus:ring-emerald-500"
+        />
+        Aplica IVA (15%)
+      </label>
+
+      <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+        <input
+          type="checkbox"
+          [(ngModel)]="platoForm().disponible"
+          name="dispPlato"
+          class="rounded text-emerald-600 focus:ring-emerald-500"
+        />
+        Disponible en Menú
+      </label>
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="platoModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Guardando...' : 'Guardar Plato' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>

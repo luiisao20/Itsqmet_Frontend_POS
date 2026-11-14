@@ -2,7 +2,9 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReporteService } from '../../service/reporte-service';
+import { PaqueteSorpresaService } from '../../service/paquete-sorpresa.service';
 import { GastosProveedor, MargenPlato, PlatoPopular, VentaResumen } from '../../models/reporte';
+import { PaqueteSorpresa } from '../../models/paquete-sorpresa';
 import { Badge } from '../../shared/badge/badge';
 import { Button } from '../../shared/button/button';
 
@@ -14,6 +16,7 @@ import { Button } from '../../shared/button/button';
 })
 export class Reportes implements OnInit {
   private reporteService = inject(ReporteService);
+  private paqueteService = inject(PaqueteSorpresaService);
 
   fechaDesde = signal<string>(this.getDefaultStartDate());
   fechaHasta = signal<string>(this.getDefaultEndDate());
@@ -23,6 +26,7 @@ export class Reportes implements OnInit {
   platosPopulares = signal<PlatoPopular[]>([]);
   gastosProveedores = signal<GastosProveedor[]>([]);
   margenes = signal<MargenPlato[]>([]);
+  paquetes = signal<PaqueteSorpresa[]>([]);
 
   // Cálculos ODS 8: Compras Locales
   totalGastoLocal = computed(() => {
@@ -39,6 +43,26 @@ export class Reportes implements OnInit {
     const total = this.totalGastoTotal();
     if (total === 0) return 0;
     return (this.totalGastoLocal() / total) * 100;
+  });
+
+  // Cálculos ODS 12: Rescate de Comida y Reducción de Desperdicio
+  totalPacksRescatados = computed(() => {
+    return this.paquetes().reduce((acc, p) => acc + (p.unidadesVendidas || 0), 0);
+  });
+
+  comidaSalvadaKg = computed(() => {
+    return this.totalPacksRescatados() * 0.9;
+  });
+
+  co2EvitadoKg = computed(() => {
+    return this.totalPacksRescatados() * 2.5;
+  });
+
+  dineroRecuperado = computed(() => {
+    return this.paquetes().reduce(
+      (acc, p) => acc + (p.unidadesVendidas || 0) * p.precioRescate,
+      0
+    );
   });
 
   ngOnInit(): void {
@@ -72,6 +96,11 @@ export class Reportes implements OnInit {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+
+    this.paqueteService.getGestion().subscribe({
+      next: (res) => this.paquetes.set(res),
+      error: () => {},
     });
   }
 

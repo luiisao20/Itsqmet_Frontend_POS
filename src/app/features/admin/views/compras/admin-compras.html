@@ -1,0 +1,280 @@
+<div class="space-y-6">
+  <div class="bg-white rounded-3xl border border-emerald-100 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-1.5 text-xs">
+        <span class="text-gray-400 font-semibold">N° Factura:</span>
+        <input
+          type="text"
+          [ngModel]="filtroNumeroFacturaCompra()"
+          (ngModelChange)="filtroNumeroFacturaCompra.set($event); loadCompras()"
+          placeholder="Ej: FAC-PRV-001"
+          class="border border-gray-200 rounded-lg px-2.5 py-1 text-xs outline-none focus:border-emerald-600 font-mono"
+        />
+      </div>
+      <div class="flex items-center gap-1.5 text-xs">
+        <span class="text-gray-400 font-semibold">Proveedor:</span>
+        <select
+          [ngModel]="filtroDistribuidorCompra()"
+          (ngModelChange)="filtroDistribuidorCompra.set($event); loadCompras()"
+          class="border border-gray-200 rounded-lg px-2.5 py-1 text-xs outline-none focus:border-emerald-600"
+        >
+          <option [ngValue]="null">Todos los distribuidores</option>
+          @for (d of distribuidores(); track d.id) {
+            <option [ngValue]="d.id">{{ d.razonSocial }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <app-button variant="primary" size="sm" (btnClick)="openCrearCompra()">
+      + Nueva Factura Proveedor
+    </app-button>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-bold text-gray-800 text-sm">Historial de Facturas de Compra a Proveedores</h3>
+      <span class="text-xs text-gray-400">{{ compras().length }} facturas</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+          <tr>
+            <th class="px-6 py-3">Factura N°</th>
+            <th class="px-6 py-3">Distribuidor</th>
+            <th class="px-6 py-3">Fecha Compra</th>
+            <th class="px-6 py-3 text-right">Total ($)</th>
+            <th class="px-6 py-3 text-center">Estado</th>
+            <th class="px-6 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 text-gray-700">
+          @for (c of compras(); track c.id) {
+            <tr class="hover:bg-emerald-50/20 transition-colors">
+              <td class="px-6 py-3.5 font-mono font-bold text-gray-900">
+                {{ c.numeroFacturaProveedor }}
+              </td>
+              <td class="px-6 py-3.5">
+                <span class="font-bold text-gray-900 block">{{ c.razonSocialDistribuidor }}</span>
+                <span class="text-[10px] font-mono text-gray-400">RUC: {{ c.rucDistribuidor }}</span>
+                @if (c.esProveedorLocalDistribuidor) {
+                  <span class="inline-block mt-0.5 px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
+                    Local (ODS 8)
+                  </span>
+                }
+              </td>
+              <td class="px-6 py-3.5 text-gray-600 font-mono text-[11px]">
+                {{ c.fechaCompra | date:'mediumDate' }}
+              </td>
+              <td class="px-6 py-3.5 text-right font-bold text-gray-900 font-mono text-sm">
+                ${{ c.totalCompra.toFixed(2) }}
+              </td>
+              <td class="px-6 py-3.5 text-center">
+                @if (c.estado === 'PAGADA') {
+                  <app-badge text="PAGADA" variant="success"></app-badge>
+                } @else if (c.estado === 'RECIBIDA') {
+                  <app-badge text="RECIBIDA" variant="info"></app-badge>
+                } @else {
+                  <app-badge text="PENDIENTE PAGO" variant="warning"></app-badge>
+                }
+              </td>
+              <td class="px-6 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+                <button
+                  type="button"
+                  (click)="openVerDetalleCompra(c)"
+                  class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-lg cursor-pointer transition-colors"
+                >
+                  🔍 Ver Insumos ({{ c.detalles.length }})
+                </button>
+                @if (c.estado !== 'PAGADA') {
+                  <button
+                    type="button"
+                    (click)="cambiarEstadoCompra(c, 'PAGADA')"
+                    class="px-2 py-1 text-[11px] font-bold bg-green-50 text-green-700 hover:bg-green-100 rounded-lg cursor-pointer transition-colors"
+                  >
+                    ✓ Pagada
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="p-8 text-center text-gray-400">No se encontraron facturas de compra a proveedores</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER DETALLE DE FACTURA DE COMPRA -->
+<app-modal
+  [isOpen]="compraDetalleModalOpen()"
+  [title]="'Factura de Compra: ' + (selectedCompra()?.numeroFacturaProveedor || '')"
+  (closed)="compraDetalleModalOpen.set(false)"
+>
+  <div class="space-y-4">
+    <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-100 flex flex-wrap justify-between gap-3 text-xs">
+      <div>
+        <span class="text-gray-400 font-semibold block">Distribuidor:</span>
+        <span class="font-bold text-gray-900">{{ selectedCompra()?.razonSocialDistribuidor }}</span>
+        <span class="text-[10px] text-gray-500 block font-mono">RUC: {{ selectedCompra()?.rucDistribuidor }}</span>
+      </div>
+      <div>
+        <span class="text-gray-400 font-semibold block">Fecha de Compra:</span>
+        <span class="font-mono text-gray-700">{{ selectedCompra()?.fechaCompra | date:'medium' }}</span>
+      </div>
+      <div>
+        <span class="text-gray-400 font-semibold block">Total Factura:</span>
+        <span class="text-sm font-black text-emerald-900 font-mono">${{ selectedCompra()?.totalCompra?.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div>
+      <h4 class="text-xs font-bold text-gray-700 mb-2">Insumos Adquiridos</h4>
+      <div class="overflow-x-auto border border-gray-100 rounded-xl">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+            <tr>
+              <th class="px-4 py-2.5">Insumo</th>
+              <th class="px-4 py-2.5 text-center">Unidad</th>
+              <th class="px-4 py-2.5 text-center">Cantidad</th>
+              <th class="px-4 py-2.5 text-right">Costo Unit.</th>
+              <th class="px-4 py-2.5 text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (d of selectedCompra()?.detalles; track d.idInsumo) {
+              <tr>
+                <td class="px-4 py-2.5 font-bold text-gray-900">{{ d.nombreInsumo }}</td>
+                <td class="px-4 py-2.5 text-center text-gray-500 font-semibold">{{ d.unidadMedida }}</td>
+                <td class="px-4 py-2.5 text-center font-mono font-bold">{{ d.cantidad }}</td>
+                <td class="px-4 py-2.5 text-right font-mono">${{ d.costoUnitario.toFixed(2) }}</td>
+                <td class="px-4 py-2.5 text-right font-mono font-bold text-emerald-900">${{ d.subtotal.toFixed(2) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pt-3 border-t border-gray-100 flex justify-end">
+      <app-button variant="outline" size="sm" (btnClick)="compraDetalleModalOpen.set(false)">Cerrar</app-button>
+    </div>
+  </div>
+</app-modal>
+
+<!-- MODAL REGISTRAR FACTURA DE PROVEEDOR -->
+<app-modal
+  [isOpen]="compraCrearModalOpen()"
+  title="Registrar Factura de Proveedor"
+  (closed)="compraCrearModalOpen.set(false)"
+>
+  <form (ngSubmit)="submitCrearCompra()" class="space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Distribuidor / Proveedor *</label>
+        <select
+          [ngModel]="compraForm().idDistribuidor"
+          (ngModelChange)="compraForm().idDistribuidor = $event"
+          name="distribuidorCompra"
+          required
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+        >
+          <option [ngValue]="null" disabled>Seleccionar Proveedor</option>
+          @for (d of distribuidores(); track d.id) {
+            <option [ngValue]="d.id">{{ d.razonSocial }} ({{ d.ruc }})</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">N° Factura del Proveedor *</label>
+        <input
+          type="text"
+          [(ngModel)]="compraForm().numeroFacturaProveedor"
+          name="numFacProv"
+          required
+          placeholder="Ej: FAC-PRV-9871"
+          class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+        />
+      </div>
+    </div>
+
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <label class="block text-xs font-bold text-gray-700">Insumos Comprados *</label>
+        <button
+          type="button"
+          (click)="addDetalleCompraRow()"
+          class="text-xs font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer"
+        >
+          + Agregar Insumo
+        </button>
+      </div>
+
+      <div class="space-y-2 max-h-56 overflow-y-auto pr-1">
+        @for (row of compraForm().detalles; track $index; let idx = $index) {
+          <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-100">
+            <div class="flex-1">
+              <select
+                [(ngModel)]="row.idInsumo"
+                [name]="'insumo_' + idx"
+                class="w-full px-2 py-1 text-xs border border-gray-200 rounded-lg outline-none focus:border-emerald-600"
+              >
+                @for (ins of insumos(); track ins.id) {
+                  <option [ngValue]="ins.id">{{ ins.nombre }} ({{ ins.unidadMedida }})</option>
+                }
+              </select>
+            </div>
+            <div class="w-20">
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                [(ngModel)]="row.cantidad"
+                [name]="'cant_' + idx"
+                placeholder="Cant."
+                class="w-full px-2 py-1 text-xs border border-gray-200 rounded-lg outline-none focus:border-emerald-600 font-mono"
+              />
+            </div>
+            <div class="w-24">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                [(ngModel)]="row.costoUnitario"
+                [name]="'costo_' + idx"
+                placeholder="Costo U."
+                class="w-full px-2 py-1 text-xs border border-gray-200 rounded-lg outline-none focus:border-emerald-600 font-mono"
+              />
+            </div>
+            <div class="w-20 text-right font-mono font-bold text-xs text-gray-900">
+              ${{ ((row.cantidad || 0) * (row.costoUnitario || 0)).toFixed(2) }}
+            </div>
+            <button
+              type="button"
+              (click)="removeDetalleCompraRow(idx)"
+              class="text-red-500 hover:text-red-700 text-sm px-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="p-3 bg-emerald-50 rounded-2xl flex justify-between items-center text-xs">
+      <span class="font-bold text-emerald-950">Total Factura Proveedor:</span>
+      <span class="font-black text-emerald-950 text-base font-mono">${{ totalCalculadoCompra.toFixed(2) }}</span>
+    </div>
+
+    <div class="pt-4 border-t border-gray-100 flex justify-end gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="compraCrearModalOpen.set(false)">Cancelar</app-button>
+      <app-button variant="primary" size="sm" type="submit" [disabled]="loadingSubmit()">
+        {{ loadingSubmit() ? 'Registrando...' : 'Registrar e Incrementar Stock' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>

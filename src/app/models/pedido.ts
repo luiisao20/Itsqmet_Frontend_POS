@@ -34,6 +34,8 @@ export interface Pedido {
   tipo: TipoPedido;
   observaciones?: string;
   detalles: DetallePedido[];
+  idPaqueteSorpresa?: number;
+  tituloPaqueteSorpresa?: string;
   createdAt: string;
 }
 
