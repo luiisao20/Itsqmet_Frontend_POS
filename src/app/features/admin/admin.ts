@@ -10,6 +10,7 @@ import { DistribuidorService } from '../../service/distribuidor-service';
 import { ClienteService } from '../../service/cliente-service';
 import { TurnoService } from '../../service/turno-service';
 import { CompraService } from '../../service/compra-service';
+import { PedidoService } from '../../service/pedido-service';
 
 import { AreaImpresion, CategoriaPlato, Plato } from '../../models/plato';
 import { EstadoMesa, Mesa } from '../../models/mesa';
@@ -21,6 +22,7 @@ import { Cliente } from '../../models/cliente';
 import { Turno } from '../../models/turno';
 import { CompraInsumo, CompraInsumoRequest, EstadoCompra } from '../../models/compra';
 import { Factura } from '../../models/factura';
+import { EstadoPedido, Pedido } from '../../models/pedido';
 
 import { Badge } from '../../shared/badge/badge';
 import { Button } from '../../shared/button/button';
@@ -54,6 +56,7 @@ export class Admin implements OnInit {
   private clienteService = inject(ClienteService);
   private turnoService = inject(TurnoService);
   private compraService = inject(CompraService);
+  private pedidoService = inject(PedidoService);
 
   activeTab = signal<AdminTab>('platos');
   loading = signal<boolean>(false);
@@ -98,6 +101,15 @@ export class Admin implements OnInit {
   // Modal Factura
   facturaDetalleModalOpen = signal<boolean>(false);
   selectedFactura = signal<Factura | null>(null);
+
+  // Detalle Cliente (Pedidos y Facturas)
+  clienteDetalleModalOpen = signal<boolean>(false);
+  clienteSeleccionado = signal<Cliente | null>(null);
+  pedidosCliente = signal<Pedido[]>([]);
+  facturasCliente = signal<Factura[]>([]);
+  loadingClienteDetalle = signal<boolean>(false);
+  tabClienteDetalle = signal<'pedidos' | 'facturas'>('pedidos');
+  pedidoDetalleExpandido = signal<number | null>(null);
 
   // Modales
   platoModalOpen = signal<boolean>(false);
@@ -952,5 +964,54 @@ export class Admin implements OnInit {
       },
       error: (e) => alert(e.error?.message || 'Error al anular factura'),
     });
+  }
+
+  // --- DETALLE INDIVIDUAL DE CLIENTE (PEDIDOS Y FACTURAS) ---
+  openDetalleCliente(c: Cliente): void {
+    this.clienteSeleccionado.set(c);
+    this.tabClienteDetalle.set('pedidos');
+    this.pedidoDetalleExpandido.set(null);
+    this.clienteDetalleModalOpen.set(true);
+    this.loadHistorialCliente(c);
+  }
+
+  loadHistorialCliente(c: Cliente): void {
+    this.loadingClienteDetalle.set(true);
+    this.pedidosCliente.set([]);
+    this.facturasCliente.set([]);
+
+    this.pedidoService.searchPedidos(undefined, undefined, undefined, c.uuid).subscribe({
+      next: (res) => this.pedidosCliente.set(res.content),
+      error: () => this.pedidosCliente.set([]),
+    });
+
+    this.facturaService.searchFacturas(undefined, c.identificacion, undefined, 0, 50).subscribe({
+      next: (res) => {
+        this.facturasCliente.set(res.content);
+        this.loadingClienteDetalle.set(false);
+      },
+      error: () => {
+        this.facturasCliente.set([]);
+        this.loadingClienteDetalle.set(false);
+      },
+    });
+  }
+
+  setTabClienteDetalle(tab: 'pedidos' | 'facturas'): void {
+    this.tabClienteDetalle.set(tab);
+  }
+
+  toggleExpandirPedido(id: number): void {
+    this.pedidoDetalleExpandido.update((curr) => (curr === id ? null : id));
+  }
+
+  getPedidoTotal(p: Pedido): number {
+    return p.detalles?.reduce((sum, d) => sum + (d.subtotal || 0), 0) || 0;
+  }
+
+  getTotalFacturadoCliente(): number {
+    return this.facturasCliente()
+      .filter((f) => f.estado === 'EMITIDA')
+      .reduce((sum, f) => sum + (f.total || 0), 0);
   }
 }

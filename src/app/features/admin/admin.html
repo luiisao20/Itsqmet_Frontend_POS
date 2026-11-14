@@ -581,6 +581,13 @@
                 <td class="px-6 py-3.5 text-gray-600">{{ c.telefono || '-' }}</td>
                 <td class="px-6 py-3.5 text-right space-x-1">
                   <button
+                    (click)="openDetalleCliente(c)"
+                    class="px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 cursor-pointer"
+                    title="Ver pedidos y facturas del cliente"
+                  >
+                    👁️ Historial
+                  </button>
+                  <button
                     (click)="openEditarCliente(c)"
                     class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
                   >
@@ -1813,6 +1820,227 @@
 
     <div class="pt-3 border-t border-gray-100 flex justify-end">
       <app-button variant="outline" size="sm" (btnClick)="facturaDetalleModalOpen.set(false)">Cerrar</app-button>
+    </div>
+  </div>
+</app-modal>
+
+<!-- MODAL: HISTORIAL Y VISTA INDIVIDUAL DE CLIENTE -->
+<app-modal
+  [isOpen]="clienteDetalleModalOpen()"
+  [title]="'Historial del Cliente: ' + (clienteSeleccionado()?.razonSocial || '')"
+  (closed)="clienteDetalleModalOpen.set(false)"
+>
+  <div class="space-y-4 max-w-3xl">
+    <!-- Ficha del Cliente -->
+    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-sm">
+            👤
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900 text-sm leading-tight">{{ clienteSeleccionado()?.razonSocial }}</h4>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded">
+                {{ clienteSeleccionado()?.tipoIdentificacion }}
+              </span>
+              <span class="text-xs font-mono text-gray-600 font-semibold">{{ clienteSeleccionado()?.identificacion }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 text-xs text-gray-600">
+          <div>
+            <span class="text-gray-400 block text-[10px] uppercase font-bold">Email</span>
+            <span>{{ clienteSeleccionado()?.email || 'No registrado' }}</span>
+          </div>
+          <div>
+            <span class="text-gray-400 block text-[10px] uppercase font-bold">Teléfono</span>
+            <span>{{ clienteSeleccionado()?.telefono || 'No registrado' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen Métricas del Cliente -->
+      <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-200/60">
+        <div class="bg-white p-2.5 rounded-xl border border-gray-100 text-center">
+          <span class="text-[10px] font-bold text-gray-400 uppercase block">Pedidos Totales</span>
+          <span class="text-base font-black text-gray-900 font-mono">{{ pedidosCliente().length }}</span>
+        </div>
+        <div class="bg-white p-2.5 rounded-xl border border-gray-100 text-center">
+          <span class="text-[10px] font-bold text-gray-400 uppercase block">Facturas Emitidas</span>
+          <span class="text-base font-black text-gray-900 font-mono">{{ facturasCliente().length }}</span>
+        </div>
+        <div class="bg-white p-2.5 rounded-xl border border-gray-100 text-center">
+          <span class="text-[10px] font-bold text-emerald-600 uppercase block">Gasto Histórico</span>
+          <span class="text-base font-black text-emerald-700 font-mono">${{ getTotalFacturadoCliente().toFixed(2) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestañas de Navegación del Historial -->
+    <div class="flex gap-2 border-b border-gray-100 pb-2">
+      <button
+        (click)="setTabClienteDetalle('pedidos')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        [ngClass]="tabClienteDetalle() === 'pedidos' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+      >
+        📦 Pedidos ({{ pedidosCliente().length }})
+      </button>
+      <button
+        (click)="setTabClienteDetalle('facturas')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        [ngClass]="tabClienteDetalle() === 'facturas' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'"
+      >
+        🧾 Facturas ({{ facturasCliente().length }})
+      </button>
+    </div>
+
+    <!-- Pestaña 1: PEDIDOS DEL CLIENTE -->
+    @if (tabClienteDetalle() === 'pedidos') {
+      <div class="space-y-2">
+        @if (loadingClienteDetalle()) {
+          <div class="p-8 text-center text-xs text-gray-400">Cargando pedidos del cliente...</div>
+        } @else {
+          <div class="overflow-x-auto border border-gray-100 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+                <tr>
+                  <th class="px-4 py-2.5">ID / Pedido</th>
+                  <th class="px-4 py-2.5">Fecha</th>
+                  <th class="px-4 py-2.5">Tipo</th>
+                  <th class="px-4 py-2.5">Estado</th>
+                  <th class="px-4 py-2.5 text-right">Total</th>
+                  <th class="px-4 py-2.5 text-right">Detalle</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 text-gray-700">
+                @for (p of pedidosCliente(); track p.id) {
+                  <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-4 py-3 font-mono font-bold text-gray-900">#{{ p.id }}</td>
+                    <td class="px-4 py-3 text-gray-500">{{ p.fechaApertura | date:'short' }}</td>
+                    <td class="px-4 py-3 font-semibold">
+                      {{ p.tipo === 'SALON' ? 'Mesa ' + (p.numeroMesa || '') : 'Para Llevar' }}
+                    </td>
+                    <td class="px-4 py-3">
+                      @if (p.estado === 'ABIERTO') {
+                        <app-badge text="ABIERTO" variant="warning"></app-badge>
+                      } @else if (p.estado === 'EN_PREPARACION') {
+                        <app-badge text="COCINANDO" variant="info"></app-badge>
+                      } @else if (p.estado === 'SERVIDO') {
+                        <app-badge text="SERVIDO" variant="info"></app-badge>
+                      } @else if (p.estado === 'FACTURADO') {
+                        <app-badge text="FACTURADO" variant="success"></app-badge>
+                      } @else {
+                        <app-badge [text]="p.estado" variant="danger"></app-badge>
+                      }
+                    </td>
+                    <td class="px-4 py-3 text-right font-mono font-bold text-gray-900">
+                      ${{ getPedidoTotal(p).toFixed(2) }}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      <button
+                        (click)="toggleExpandirPedido(p.id)"
+                        class="px-2 py-1 text-[11px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg cursor-pointer"
+                      >
+                        {{ pedidoDetalleExpandido() === p.id ? 'Ocultar ▲' : 'Platos ▼' }}
+                      </button>
+                    </td>
+                  </tr>
+
+                  <!-- Desglose de Platillos Expandido -->
+                  @if (pedidoDetalleExpandido() === p.id) {
+                    <tr class="bg-emerald-50/20">
+                      <td colspan="6" class="px-6 py-3">
+                        <div class="bg-white rounded-lg p-3 border border-emerald-100 space-y-1">
+                          <span class="text-[10px] uppercase font-bold text-emerald-800 block mb-1">Platillos Ordenados:</span>
+                          @for (det of p.detalles; track det.id) {
+                            <div class="flex justify-between items-center text-xs py-1 border-b border-gray-50 last:border-0">
+                              <span class="font-medium text-gray-800">
+                                <span class="font-bold font-mono text-emerald-700">{{ det.cantidad }}x</span> {{ det.nombrePlato }}
+                                @if (det.notasPreparacion) {
+                                  <span class="text-[10px] text-gray-400 italic block">Nota: {{ det.notasPreparacion }}</span>
+                                }
+                              </span>
+                              <span class="font-mono text-gray-600">${{ det.subtotal.toFixed(2) }}</span>
+                            </div>
+                          } @empty {
+                            <span class="text-xs text-gray-400">Sin platillos detallados</span>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="p-6 text-center text-gray-400">Este cliente no registra pedidos realizados</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Pestaña 2: FACTURAS DEL CLIENTE -->
+    @if (tabClienteDetalle() === 'facturas') {
+      <div class="space-y-2">
+        @if (loadingClienteDetalle()) {
+          <div class="p-8 text-center text-xs text-gray-400">Cargando facturas del cliente...</div>
+        } @else {
+          <div class="overflow-x-auto border border-gray-100 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
+                <tr>
+                  <th class="px-4 py-2.5">Secuencial</th>
+                  <th class="px-4 py-2.5">Fecha</th>
+                  <th class="px-4 py-2.5">Estado</th>
+                  <th class="px-4 py-2.5 text-right">Subtotal</th>
+                  <th class="px-4 py-2.5 text-right">IVA (15%)</th>
+                  <th class="px-4 py-2.5 text-right">Total</th>
+                  <th class="px-4 py-2.5 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 text-gray-700">
+                @for (f of facturasCliente(); track f.id) {
+                  <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-4 py-3 font-mono font-bold text-gray-900">{{ f.numeroSecuencial }}</td>
+                    <td class="px-4 py-3 text-gray-500">{{ f.fechaEmision | date:'short' }}</td>
+                    <td class="px-4 py-3">
+                      @if (f.estado === 'EMITIDA') {
+                        <app-badge text="EMITIDA" variant="success"></app-badge>
+                      } @else {
+                        <app-badge text="ANULADA" variant="danger"></app-badge>
+                      }
+                    </td>
+                    <td class="px-4 py-3 text-right font-mono">${{ f.subtotal.toFixed(2) }}</td>
+                    <td class="px-4 py-3 text-right font-mono">${{ f.subtotalIva.toFixed(2) }}</td>
+                    <td class="px-4 py-3 text-right font-mono font-bold text-emerald-700">${{ f.total.toFixed(2) }}</td>
+                    <td class="px-4 py-3 text-right">
+                      <button
+                        (click)="openVerDetalleFactura(f)"
+                        class="px-2 py-1 text-[11px] font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
+                        title="Ver comprobante completo"
+                      >
+                        Ver Factura
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="7" class="p-6 text-center text-gray-400">Este cliente no registra facturas emitidas</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Footer Modal -->
+    <div class="pt-3 border-t border-gray-100 flex justify-end">
+      <app-button variant="outline" size="sm" (btnClick)="clienteDetalleModalOpen.set(false)">Cerrar</app-button>
     </div>
   </div>
 </app-modal>

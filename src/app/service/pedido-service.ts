@@ -20,11 +20,19 @@ export class PedidoService {
     return this.http.get<Pedido>(`${this.PEDIDOS_URL}/${id}`);
   }
 
-  searchPedidos(estado?: EstadoPedido, tipo?: TipoPedido, idMesa?: number): Observable<PageResponse<Pedido>> {
-    let params = new HttpParams().set('size', 50);
+  searchPedidos(
+    estado?: EstadoPedido,
+    tipo?: TipoPedido,
+    idMesa?: number,
+    clienteUuid?: string,
+    page = 0,
+    size = 50
+  ): Observable<PageResponse<Pedido>> {
+    let params = new HttpParams().set('page', page).set('size', size);
     if (estado) params = params.set('estado', estado);
     if (tipo) params = params.set('tipo', tipo);
     if (idMesa) params = params.set('idMesa', idMesa);
+    if (clienteUuid) params = params.set('clienteUuid', clienteUuid);
 
     return this.http.get<PageResponse<Pedido>>(`${this.PEDIDOS_URL}/buscar`, { params });
   }
