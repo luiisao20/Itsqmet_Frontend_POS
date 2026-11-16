@@ -63,6 +63,15 @@
             >
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               👨‍🍳 Monitor Cocina
+              @if (unreadOrders() > 0) {
+                <span
+                  data-unread-orders
+                  [attr.aria-label]="unreadOrders() + ' pedidos nuevos'"
+                  class="min-w-5 h-5 px-1.5 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center"
+                >
+                  {{ unreadOrders() }}
+                </span>
+              }
             </a>
           }
 
@@ -186,9 +195,17 @@
         <button
           type="button"
           (click)="toggleMobileMenu()"
-          class="p-2 rounded-lg text-gray-600 hover:bg-emerald-50 focus:outline-hidden"
+          class="relative p-2 rounded-lg text-gray-600 hover:bg-emerald-50 focus:outline-hidden"
         >
           ☰
+          @if (unreadOrders() > 0 && (rol === 'ADMIN' || rol === 'COCINA' || rol === 'MESERO')) {
+            <span
+              [attr.aria-label]="unreadOrders() + ' pedidos nuevos'"
+              class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center"
+            >
+              {{ unreadOrders() }}
+            </span>
+          }
         </button>
       </div>
     </div>
@@ -236,9 +253,18 @@
         <a
           routerLink="/cocina"
           (click)="mobileMenuOpen.set(false)"
-          class="block px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-emerald-50"
+          class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-emerald-50"
         >
           👨‍🍳 Monitor Cocina
+          @if (unreadOrders() > 0) {
+            <span
+              data-unread-orders
+              [attr.aria-label]="unreadOrders() + ' pedidos nuevos'"
+              class="min-w-5 h-5 px-1.5 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center"
+            >
+              {{ unreadOrders() }}
+            </span>
+          }
         </a>
       }
 

@@ -25,6 +25,21 @@ export class AuthService {
   }
 
   /**
+   * Role saved by the last session, or null when there is no session hint.
+   * Never throws: blocked or missing storage counts as "no session hint".
+   */
+  sessionHintRol(): RolUsuario | null {
+    try {
+      if (localStorage.getItem('pos_logged_in') !== 'true') {
+        return null;
+      }
+      return localStorage.getItem('pos_user_rol') as RolUsuario | null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Inicio de sesión para Personal (Admin, Mesero, Cocina)
    */
   login(req: LoginRequest): Observable<AuthResponse> {
