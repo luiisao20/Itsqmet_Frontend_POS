@@ -1,12 +1,20 @@
-<div class="bg-white rounded-3xl border border-emerald-100 shadow-xs overflow-hidden">
-  <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div class="space-y-6">
+  <!-- ENCABEZADO DE SECCIÓN -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
     <div>
-      <h3 class="font-bold text-gray-800 text-sm">Catálogo de Platos del Menú</h3>
-      <span class="text-xs text-gray-400">{{ platos().length }} registrados</span>
+      <h2 class="text-lg font-black text-gray-900">Gestión de Platos del Menú</h2>
+      <p class="text-xs text-gray-500 mt-0.5">
+        Administra los platos disponibles, precios de venta y fichas técnicas de recetas (ODS 8.4)
+      </p>
     </div>
-    <app-button variant="primary" size="md" (btnClick)="openCrearPlato()">+ Nuevo Plato</app-button>
+    <div class="flex items-center gap-2">
+      <app-button variant="primary" size="sm" (btnClick)="openCrearPlato()">
+        + Nuevo Plato
+      </app-button>
+    </div>
   </div>
 
+  <!-- TABLA DE PLATOS -->
   <div class="overflow-x-auto">
     <table class="w-full text-left text-xs">
       <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 uppercase text-[10px] font-bold">
@@ -25,26 +33,37 @@
             <td class="px-6 py-3.5">
               <div class="flex items-center gap-3">
                 @if (p.urlImagen) {
-                  <img [src]="p.urlImagen" class="w-9 h-9 rounded-lg object-cover" />
+                  <img
+                    [src]="p.urlImagen"
+                    [alt]="p.nombre"
+                    class="w-10 h-10 rounded-xl object-cover border border-emerald-100"
+                  />
+                } @else {
+                  <div
+                    class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-lg"
+                  >
+                    🍽️
+                  </div>
                 }
                 <div>
                   <span class="font-bold text-gray-900 block">{{ p.nombre }}</span>
-                  <span class="text-[11px] text-gray-400 line-clamp-1">{{ p.descripcion || 'Sin descripción' }}</span>
+                  <span class="text-[11px] text-gray-400 line-clamp-1">{{ p.descripcion }}</span>
                 </div>
               </div>
             </td>
             <td class="px-6 py-3.5">
-              <span class="font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
-                {{ p.nombreCategoria || 'General' }}
+              <span class="px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[11px] font-medium">
+                {{ p.nombreCategoria || 'Sin Categoría' }}
               </span>
             </td>
-            <td class="px-6 py-3.5 font-bold text-emerald-800 text-sm">
+            <td class="px-6 py-3.5 font-bold font-mono text-gray-900">
               ${{ p.precioUnitario.toFixed(2) }}
             </td>
             <td class="px-6 py-3.5">
-              <span class="text-[11px] font-semibold" [ngClass]="p.aplicaIva ? 'text-emerald-700' : 'text-gray-400'">
-                {{ p.aplicaIva ? '15%' : '0%' }}
-              </span>
+              <app-badge
+                [text]="p.aplicaIva ? '15%' : '0%'"
+                [variant]="p.aplicaIva ? 'info' : 'neutral'"
+              ></app-badge>
             </td>
             <td class="px-6 py-3.5">
               <button
@@ -59,6 +78,14 @@
               </button>
             </td>
             <td class="px-6 py-3.5 text-right space-x-1">
+              <button
+                (click)="abrirRecetaModal(p)"
+                class="px-2.5 py-1 text-xs font-semibold bg-emerald-100/70 text-emerald-900 rounded-lg hover:bg-emerald-200 cursor-pointer transition-colors inline-flex items-center gap-1"
+                title="Configurar Ficha Técnica / Receta"
+              >
+                <span>🧑‍🍳</span>
+                <span>Receta</span>
+              </button>
               <button
                 (click)="openEditarPlato(p)"
                 class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer"
@@ -83,7 +110,9 @@
   </div>
 </div>
 
-<!-- MODAL PLATO -->
+<!-- ============================================================== -->
+<!-- MODAL PLATO (CRUD BÁSICO)                                      -->
+<!-- ============================================================== -->
 <app-modal
   [isOpen]="platoModalOpen()"
   [title]="editPlatoId() ? 'Editar Plato' : 'Nuevo Plato'"
@@ -180,4 +209,154 @@
       </app-button>
     </div>
   </form>
+</app-modal>
+
+<!-- ============================================================== -->
+<!-- MODAL RECETA / FICHA TÉCNICA (ODS 8.4)                        -->
+<!-- ============================================================== -->
+<app-modal
+  [isOpen]="recetaModalOpen()"
+  [title]="'Ficha Técnica y Receta: ' + (selectedPlato()?.nombre || '')"
+  (closed)="recetaModalOpen.set(false)"
+>
+  <div class="space-y-5">
+    <!-- Información de Rentabilidad y Precios -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-emerald-50/40 p-3.5 rounded-2xl border border-emerald-100">
+      <div>
+        <span class="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Precio de Venta</span>
+        <span class="text-base font-black text-gray-900 font-mono">
+          ${{ (selectedPlato()?.precioUnitario || 0).toFixed(2) }}
+        </span>
+      </div>
+
+      <div>
+        <span class="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Costo Receta (Insumos)</span>
+        <span class="text-base font-black text-amber-700 font-mono">
+          ${{ costoTotalReceta().toFixed(2) }}
+        </span>
+      </div>
+
+      <div>
+        <span class="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Margen y Rentabilidad</span>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span
+            class="text-base font-black font-mono"
+            [ngClass]="porcentajeMargen() >= 50 ? 'text-emerald-700' : porcentajeMargen() >= 30 ? 'text-amber-700' : 'text-red-600'"
+          >
+            ${{ margenBruto().toFixed(2) }} ({{ porcentajeMargen().toFixed(1) }}%)
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario para Agregar Insumo a la Receta -->
+    <div class="p-3.5 rounded-2xl border border-emerald-100 bg-white shadow-2xs space-y-3">
+      <span class="text-xs font-bold text-emerald-950 block">➕ Agregar Insumo a la Receta</span>
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+        <div class="sm:col-span-6">
+          <label class="block text-[11px] font-bold text-gray-600 mb-1">Insumo / Ingrediente *</label>
+          <select
+            [(ngModel)]="recetaForm().idInsumo"
+            name="insumoSelect"
+            class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none bg-white font-medium"
+          >
+            @for (ins of insumosDisponibles(); track ins.id) {
+              <option [value]="ins.id">
+                {{ ins.nombre }} (${{ ins.costoPromedio.toFixed(2) }} / {{ ins.unidadMedida }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="sm:col-span-3">
+          <label class="block text-[11px] font-bold text-gray-600 mb-1">Cantidad Requerida *</label>
+          <input
+            type="number"
+            step="0.001"
+            min="0.001"
+            [(ngModel)]="recetaForm().cantidadRequerida"
+            name="cantReq"
+            class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none font-mono"
+            placeholder="0.25"
+          />
+        </div>
+
+        <div class="sm:col-span-3">
+          <button
+            type="button"
+            (click)="agregarInsumoAReceta()"
+            [disabled]="loadingAgregarInsumo()"
+            class="w-full py-2 px-3 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-xs hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {{ loadingAgregarInsumo() ? 'Agregando...' : '+ Agregar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Insumos de la Receta -->
+    <div class="border border-gray-100 rounded-2xl overflow-hidden">
+      <div class="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+        <span class="text-xs font-bold text-gray-800">Ingredientes de la Ficha Técnica</span>
+        <span class="text-[11px] text-gray-400 font-semibold">{{ recetasActuales().length }} insumos</span>
+      </div>
+
+      <div class="overflow-x-auto max-h-60 overflow-y-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50/50 border-b border-gray-100 text-gray-400 uppercase text-[9px] font-bold">
+            <tr>
+              <th class="px-4 py-2">Insumo</th>
+              <th class="px-4 py-2">Cantidad</th>
+              <th class="px-4 py-2">Costo Promedio</th>
+              <th class="px-4 py-2">Subtotal</th>
+              <th class="px-4 py-2 text-right">Acción</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            @for (r of recetasActuales(); track r.id) {
+              @let insumo = getInsumoInfo(r.idInsumo);
+              @let costoUnit = insumo?.costoPromedio ?? 0;
+              @let subtotal = r.cantidadRequerida * costoUnit;
+              <tr class="hover:bg-gray-50/50 transition-colors">
+                <td class="px-4 py-2.5 font-bold text-gray-900">
+                  {{ insumo?.nombre || r.nombreInsumo }}
+                </td>
+                <td class="px-4 py-2.5 font-mono text-gray-800">
+                  {{ r.cantidadRequerida }} {{ insumo?.unidadMedida || r.unidadMedidaInsumo }}
+                </td>
+                <td class="px-4 py-2.5 font-mono text-gray-500">
+                  ${{ costoUnit.toFixed(2) }}
+                </td>
+                <td class="px-4 py-2.5 font-mono font-bold text-emerald-900">
+                  ${{ subtotal.toFixed(2) }}
+                </td>
+                <td class="px-4 py-2.5 text-right">
+                  <button
+                    type="button"
+                    (click)="eliminarInsumoDeReceta(r)"
+                    class="px-2 py-1 text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg cursor-pointer transition-colors"
+                  >
+                    Retirar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="p-6 text-center text-gray-400">
+                  No hay ingredientes asociados a este plato. Agrega los insumos arriba para calcular el costo de la receta.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pie del Modal -->
+    <div class="pt-3 border-t border-gray-100 flex justify-end">
+      <app-button variant="outline" size="sm" (btnClick)="recetaModalOpen.set(false)">
+        Cerrar
+      </app-button>
+    </div>
+  </div>
 </app-modal>

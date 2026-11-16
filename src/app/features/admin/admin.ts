@@ -23,8 +23,18 @@ export class Admin implements OnInit {
   usuariosCount = signal<number>(0);
   insumosCount = signal<number>(0);
 
+  sidebarOpen = signal<boolean>(false);
+
   ngOnInit(): void {
     this.loadMetrics();
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update((v) => !v);
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
   }
 
   loadMetrics(): void {

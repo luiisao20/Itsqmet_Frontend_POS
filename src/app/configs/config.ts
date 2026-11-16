@@ -40,6 +40,7 @@ export const APP_CONFIG = {
     TURNOS: '/turnos',
     REPORTES: '/reportes',
     PAQUETES_SORPRESA: '/paquetes-sorpresa',
+    RECETAS: '/recetas',
   },
   TOPICS: {
     PEDIDOS: '/topic/pedidos',
